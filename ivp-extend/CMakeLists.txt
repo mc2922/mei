@@ -25,7 +25,7 @@ SET(BUILD_SHORE_APPS TRUE CACHE BOOL "Build shore apps")
 
 find_path(HOVERGROUP_LIBRARIES
             NAMES src/lib_HoverAcomms
-            PATHS ../../marine/libraries
+            PATHS ../../hover-kayak/code/marine/libraries
             NO_DEFAULT_PATH )
 
 FILE(GLOB HOVERGROUP_LIB_DIRECTORIES 
@@ -45,7 +45,7 @@ set ( HOVERGROUP_LIBRARY_PATH
 
 find_path( GOBY_BASE
              NAMES DEPENDENCIES build.sh AUTHORS
-            PATHS "~/goby" "../../../../goby"
+            PATHS "~/goby" "../../goby"
              NO_DEFAULT_PATH )
 
 set( GOBY_INCLUDE_DIRS
@@ -61,7 +61,7 @@ set( GOBY_LIBRARY_PATH
 # Search for the moos-ivp folder
 find_path( MOOSIVP_SOURCE_TREE_BASE
              NAMES ivp
-             PATHS "../moos-ivp" "../../../../moos-ivp" "../../../../moos-ivp/trunk/" "../moos-ivp/trunk/" "~/moos-ivp"
+             PATHS "../moos-ivp" "../../moos-ivp" "../../../../moos-ivp/trunk/" "../moos-ivp/trunk/" "~/moos-ivp"
              DOC "Base directory of the MOOS-IvP source tree"
              NO_DEFAULT_PATH
 )
