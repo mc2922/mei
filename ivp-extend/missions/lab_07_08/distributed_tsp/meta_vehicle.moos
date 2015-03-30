@@ -21,6 +21,17 @@ Processconfig = ANTLER
   Run = pShare             @ NewConsole = false
   Run = pHostInfo          @ NewConsole = false
   Run = uFldNodeBroker     @ NewConsole = false
+  //Run = pGenPath           @ NewConsole = false
+}
+
+Processconfig = pGenPath
+{
+ AppTick = 4
+ CommsTick = 4
+
+vname = $(VNAME)
+start_pos = $(START_POS)
+visit_radius = 5
 }
 
 #include plug_uSimMarine.moos
