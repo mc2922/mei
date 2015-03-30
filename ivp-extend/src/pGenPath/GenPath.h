@@ -31,7 +31,8 @@ private:
     std::string vname,myvar;
     std::vector<double> xvec,yvec;
     std::vector<double> xsol,ysol;
-    double myx,myy;
+    double henry_x,henry_y;
+    double gilda_x,gilda_y;
 };
 
 #endif 

@@ -35,13 +35,15 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     for(p=NewMail.begin(); p!=NewMail.end(); p++) {
         CMOOSMsg &msg = *p;
         string key = msg.GetKey();
-        if (key == myvar) {
+        if (key == "VISIT_POINT_HENRY") {
         	string val = msg.GetString();
 
         	string mysub = MOOSChomp(val,","); //chomp out x
         	cout << mysub << endl;
         	if(mysub=="firstpoint"){
-        		//Do nothing
+        		//Start at the vehicle origin
+        		xvec.push_back(myx);
+        		yvec.push_back(myy);
         	}else if(mysub=="lastpoint"){
         		//Finished - Generate a path
         		solveTSP();
@@ -56,6 +58,9 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
         		yvec.push_back(boost::lexical_cast<double>(mysub));
         	}
         }
+        else if (key == "VISIT_POINT_GILDA"){
+
+        }
     }
 return(true);
 }
@@ -69,12 +74,14 @@ void GenPath::solveTSP()
     vector<double> xtemp = xvec;
     vector<double> ytemp = yvec;
     double current_obj=0;
+    double visited_x = myx;
+    double visited_y = myy;
     while(!xtemp.empty()){
     	double current_max = -1;
     	double current_x,current_y;
     	int current_ind;
     	for(int i=0;i<xtemp.size();i++){
-    		double dist = sqrt(pow(xtemp[i]-myx,2)+pow(ytemp[i]-myy,2));
+    		double dist = sqrt(pow(xtemp[i]-visited_x,2)+pow(ytemp[i]-visited_y,2));
     		if(current_max<0 || dist<current_max){
     			current_max = dist;
     			current_x = xtemp[i];
@@ -85,6 +92,8 @@ void GenPath::solveTSP()
     	current_obj+=current_max;
     	xsol.push_back(current_x);
     	ysol.push_back(current_y);
+    	visited_x = current_x;
+    	visited_y = current_y;
     	xtemp.erase(xtemp.begin()+current_ind);
     	ytemp.erase(ytemp.begin()+current_ind);
     }
@@ -141,9 +150,9 @@ void GenPath::publishSegList(vector<double> xin, vector<double> yin, string labe
 }
 
 double GenPath::computeTSPDist(vector<double> xin, vector<double> yin){
-	double total_distance;
+	double total_distance=0;
 	for(int i=1;i<xin.size();i++){
-		total_distance = sqrt(pow(xin[i-1]-xin[i],2)+pow(yin[i-1]-yin[i],2));
+		total_distance += sqrt(pow(xin[i-1]-xin[i],2)+pow(yin[i-1]-yin[i],2));
 	}
 	return total_distance;
 }
@@ -171,16 +180,18 @@ bool GenPath::Iterate()
 
 bool GenPath::OnStartUp()
 {
-    m_MissionReader.GetConfigurationParam("vname", vname);
-    MOOSToUpper(vname);
-    myvar = "VISIT_POINT_"+vname;
-	m_Comms.Register(myvar, 0);
+	m_Comms.Register("VISIT_POINT_HENRY", 0);
+	m_Comms.Register("VISIT_POINT_GILDA", 0);
 	m_Comms.Notify("TIMER_START","true");
 
     string start_pos;
-    m_MissionReader.GetConfigurationParam("start_pos", start_pos);
-    myx = boost::lexical_cast<double>(MOOSChomp(start_pos,","));
-    myy = boost::lexical_cast<double>(start_pos);
+    m_MissionReader.GetConfigurationParam("henry_start_pos", start_pos);
+    henry_x = boost::lexical_cast<double>(MOOSChomp(start_pos,","));
+    henry_y = boost::lexical_cast<double>(start_pos);
+
+    m_MissionReader.GetConfigurationParam("gilda_start_pos", start_pos);
+    gilda_x = boost::lexical_cast<double>(MOOSChomp(start_pos,","));
+    gilda_y = boost::lexical_cast<double>(start_pos);
 
     return true;
 }

@@ -14,12 +14,28 @@ Processconfig = ANTLER
 
   Run = MOOSDB          @ NewConsole = false
   Run = pMarineViewer   @ NewConsole = false
-  Run = pLogger         @ NewConsole = false
+  //Run = pLogger         @ NewConsole = false
   Run = pShare          @ NewConsole = false
   Run = pHostInfo       @ NewConsole = false
   Run = uFldShoreBroker @ NewConsole = false
   Run = uTimerScript    @ NewConsole = false
+  Run = pPointAssign    @ NewConsole = false
+}
 
+ProcessConfig = pPointAssign
+{
+ AppTick = 4
+ CommsTick = 4
+
+ assign_by_region = true
+}
+
+Processconfig = pGenPath
+{
+ AppTick = 4
+ CommsTick = 4
+
+start_pos = $(START_POS)
 }
 
 ProcessConfig = uTimerScript
