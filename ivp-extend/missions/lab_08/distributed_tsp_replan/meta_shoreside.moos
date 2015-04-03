@@ -30,6 +30,15 @@ ProcessConfig = pPointAssign
  assign_by_region = true
 }
 
+Processconfig = pGenPath
+{
+ AppTick = 4
+ CommsTick = 4
+
+henry_start_pos = 80,0
+gilda_start_pos = 0,0
+}
+
 ProcessConfig = uTimerScript
 {
  AppTick = 4
@@ -43,8 +52,7 @@ ProcessConfig = uTimerScript
  event = var=VISIT_POINT, val="lastpoint", time=0
 
  paused = true
- pause_var = HENRY_PAUSE
- condition = GILDA_PAUSE=false
+ pause_var = TIMER_PAUSE
 }
 
 #include plug_pShare.moos
@@ -67,7 +75,8 @@ ProcessConfig = uFldShoreBroker
   BRIDGE   = src=RETURN_$V,  alias=RETURN
   BRIDGE   = src=REFUEL_NEEDED_ALL, alias=REFUEL
 
-  BRIDGE = src = VISIT_POINT_$V, alias=VISIT_POINT
+  BRIDGE = src = henry_TSP_UPDATES
+  BRIDGE = src = gilda_TSP_UPDATES
 }
 
 //--------------------------------------------------------

@@ -16,8 +16,7 @@ Behavior = BHV_Waypoint
   condition = RETURN = false
   condition = REFUEL = false
   endflag   = STATION_KEEP = true
-  endflag   = GENPATH_REGENERATE = true
-  UPDATES = TSP_UPDATES
+  UPDATES = $(VNAME)_TSP_UPDATES
   perpetual = true
 
       speed = 1.2

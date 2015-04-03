@@ -16,9 +16,8 @@ using namespace std;
 
 GenPath::GenPath()
 {
-	compute_henry = false;
-	compute_gilda = false;
-	current_obj=0;
+	monitoring = false;
+	deployed = false;
 }
 
 //---------------------------------------------------------
@@ -26,6 +25,7 @@ GenPath::GenPath()
 
 GenPath::~GenPath()
 {
+
 }
 
 //---------------------------------------------------------
@@ -38,70 +38,74 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
 	for(p=NewMail.begin(); p!=NewMail.end(); p++) {
 		CMOOSMsg &msg = *p;
 		string key = msg.GetKey();
-		if (key == "VISIT_POINT_HENRY") {
+		if (key == "VISIT_POINT") {
 			string val = msg.GetString();
 			string mysub = MOOSChomp(val,","); //chomp out x
-
 			if(mysub=="firstpoint"){
 				//Do nothing
 			}else if(mysub=="lastpoint"){
 				//Finished
-				compute_henry = true;
+				solveTSP();
 			}else{
 				MOOSChomp(mysub,"=");
-				henry_xvec.push_back(boost::lexical_cast<double>(mysub));
+				xvec.push_back(boost::lexical_cast<double>(mysub));
 				mysub = MOOSChomp(val,","); //Chomp ystr
 				MOOSChomp(mysub,"=");
-				henry_yvec.push_back(boost::lexical_cast<double>(mysub));
+				yvec.push_back(boost::lexical_cast<double>(mysub));
 			}
 		}
-		else if (key == "VISIT_POINT_GILDA"){
-			string val = msg.GetString();
-			string mysub = MOOSChomp(val,","); //chomp out x
-
-			if(mysub=="firstpoint"){
-				//Do nothing
-			}else if(mysub=="lastpoint"){
-				//Finished
-				compute_gilda = true;
-			}else{
-				MOOSChomp(mysub,"=");
-				gilda_xvec.push_back(boost::lexical_cast<double>(mysub));
-				mysub = MOOSChomp(val,","); //Chomp ystr
-				MOOSChomp(mysub,"=");
-				gilda_yvec.push_back(boost::lexical_cast<double>(mysub));
+		else if(key == "NAV_X"){
+			nav_x = msg.GetDouble();
+			if(monitoring&&deployed){
+				double dist = sqrt(pow(xvec[current_wpt]-nav_x,2)+pow(xvec[current_wpt]-nav_y,2));
+				if(dist<=visit_radius){
+					indices.push_back(current_wpt);
+					cout << current_wpt << " visited" <<endl;
+				}
 			}
+		}
+		else if(key == "NAV_Y"){
+			nav_y = msg.GetDouble();
+			vector<int> indices;
+			if(monitoring&&deployed){
+				double dist = sqrt(pow(xvec[current_wpt]-nav_x,2)+pow(xvec[current_wpt]-nav_y,2));
+				if(dist<=visit_radius){
+					indices.push_back(current_wpt);
+					cout << current_wpt << " visited" <<endl;
+				}
+			}
+		}
+		else if(key == "GENPATH_REGENERATE"){
+			double missed = xvec.size()-indices.size();
+			cout << "Missed points: " << missed << endl;
+		}
+		else if(key=="DEPLOY"){
+			string dstr = msg.GetString();
+			if(dstr=="true"){
+				deployed = true;
+			}
+		}
+		else if(key=="WPT_INDEX"){
+			current_wpt = msg.GetDouble();
 		}
 	}
 	return(true);
 }
 
-void GenPath::solveTSP(int vehicle_id)
+void GenPath::solveTSP()
 {
 	//Use the following heuristic to generate a path:
 	//Greedy 2-Opt (Guarantee 2-approx of opt)
 	//Construct an initial solution greedily (closest point)
-	current_obj=0;
-	xsol.clear();ysol.clear();
+	double current_obj=0;
+    std::vector<double> xsol,ysol,xtemp,ytemp;
+	double visited_x,visited_y;
 
-    if(vehicle_id==1){
-		cout << "Computing Gilda" << endl;
-		visited_x = gilda_x; visited_y = gilda_y;
-		xsol.push_back(visited_x); ysol.push_back(visited_y);
-		xtemp=gilda_xvec; ytemp=gilda_yvec;
-		vname = "gilda_TSP_UPDATES";
-		label = "label=gilda_path,edge_color=pink,vertex_color=red,vertex_size=10,edge_size=1";
-		compute_gilda = false;
-	}
-	else{
-		cout << "Computing Henry" << endl;
-		visited_x = henry_x; visited_y = henry_y;
-		xsol.push_back(visited_x); ysol.push_back(visited_y);
-		xtemp=henry_xvec; ytemp=henry_yvec;
-		vname = "henry_TSP_UPDATES";
-		label = "label=henry_path,edge_color=white,vertex_color=blue,vertex_size=10,edge_size=1";
-		compute_henry = false;
-	}
+	cout << "Start Computing" << endl;
+	visited_x = start_x; visited_y = start_y;
+	xsol.push_back(visited_x); ysol.push_back(visited_y);
+	xtemp=xvec; ytemp=yvec;
+
 	while(!xtemp.empty()){
 		double current_max = -1;
 		double current_x,current_y;
@@ -122,7 +126,7 @@ void GenPath::solveTSP(int vehicle_id)
 	}
 
 	cout << "Improving Solution" << endl;
-	xtemp = xsol; ytemp = ysol;
+	xtemp=xsol; ytemp=ysol;
 
 	//Improvement step - make pairwise exchanges
 	bool improving = true;
@@ -152,6 +156,9 @@ void GenPath::solveTSP(int vehicle_id)
 		}
 	}
 	publishSegList(xsol,ysol,label,vname);	//Final answer
+	xvec = xsol; yvec = ysol;
+	monitoring = true;
+	cout << "Finished" << endl;
 }
 
 void GenPath::publishSegList(vector<double> xin, vector<double> yin, string label, string vname){
@@ -166,9 +173,18 @@ void GenPath::publishSegList(vector<double> xin, vector<double> yin, string labe
 	}
 	pointsOut << "}";
 	waypointsOut << pointsOut.str();
+	string update_str= "TSP_UPDATES";
+
+	if(vname=="henry"){
+		seglist_label="edge_color=white,vertex_color=blue,vertex_size=10,edge_size=1";
+	}else{
+		seglist_label="edge_color=pink,vertex_color=red,vertex_size=10,edge_size=1";
+	}
+
+	label = "label="+vname+"_path,"+seglist_label;
 	pointsOut << ","<<label;
 	m_Comms.Notify("VIEW_SEGLIST",pointsOut.str());
-	m_Comms.Notify(vname,waypointsOut.str());
+	m_Comms.Notify(update_str,waypointsOut.str());
 }
 
 double GenPath::computeTSPDist(vector<double> xin, vector<double> yin){
@@ -193,11 +209,6 @@ bool GenPath::OnConnectToServer()
 
 bool GenPath::Iterate()
 {
-	if(compute_gilda){
-		solveTSP(1);
-	}else if (compute_henry){
-		solveTSP(2);
-	}
 	return true;
 }
 
@@ -207,19 +218,24 @@ bool GenPath::Iterate()
 
 bool GenPath::OnStartUp()
 {
-	m_Comms.Register("VISIT_POINT_HENRY", 0);
-	m_Comms.Register("VISIT_POINT_GILDA", 0);
+	m_Comms.Register("VISIT_POINT", 0);
+	m_Comms.Register("NAV_X",0);
+	m_Comms.Register("NAV_Y",0);
+	m_Comms.Register("GENPATH_REGENERATE",0);
+	m_Comms.Register("DEPLOY",0);
+	m_Comms.Register("WPT_INDEX",0);
 
 	string start_pos;
-	m_MissionReader.GetConfigurationParam("henry_start_pos", start_pos);
-	henry_x = boost::lexical_cast<double>(MOOSChomp(start_pos,","));
-	henry_y = boost::lexical_cast<double>(start_pos);
+	m_MissionReader.GetConfigurationParam("start_pos", start_pos);
+	start_x = boost::lexical_cast<double>(MOOSChomp(start_pos,","));
+	start_y = boost::lexical_cast<double>(start_pos);
 
-	m_MissionReader.GetConfigurationParam("gilda_start_pos", start_pos);
-	gilda_x = boost::lexical_cast<double>(MOOSChomp(start_pos,","));
-	gilda_y = boost::lexical_cast<double>(start_pos);
+	string radius;
+	m_MissionReader.GetConfigurationParam("visit_radius", radius);
+	visit_radius = boost::lexical_cast<double>(radius);
+
+	m_MissionReader.GetConfigurationParam("vname", vname);
 
 	m_Comms.Notify("TIMER_PAUSE","false");
 	return true;
 }
-

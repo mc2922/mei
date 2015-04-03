@@ -2,7 +2,7 @@
 #-----------------------------------------------------------
 #  Part 1: Check for and handle command-line arguments
 #-----------------------------------------------------------
-TIME_WARP=20
+TIME_WARP=10
 JUST_MAKE="no"
 for ARGI; do
     if [ "${ARGI}" = "--help" -o "${ARGI}" = "-h" ] ; then
@@ -23,8 +23,8 @@ done
 #-----------------------------------------------------------
 #  Part 2: Create the .moos and .bhv files. 
 #-----------------------------------------------------------
-VNAME1="GILDA"  
-VNAME2="HENRY"  
+VNAME1="gilda"  
+VNAME2="henry"  
 START_POS1="0,0"    
 START_POS2="80,0"   
 LOITER_POS1="x=0,y=-75"

@@ -23,16 +23,6 @@ Processconfig = ANTLER
   Run = uFldNodeBroker     @ NewConsole = false
 }
 
-Processconfig = pGenPath
-{
- AppTick = 4
- CommsTick = 4
-
-vname = $(VNAME)
-start_pos = $(START_POS)
-visit_radius = 5
-}
-
 #include plug_uSimMarine.moos
 #include plug_pLogger.moos
 #include plug_pNodeReporter.moos
