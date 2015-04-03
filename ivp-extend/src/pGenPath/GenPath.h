@@ -23,14 +23,18 @@ protected:
     bool Iterate();
     bool OnConnectToServer();
     bool OnStartUp();
-    void solveTSP();
+    void solveTSP(int vehicle_id);
     double computeTSPDist(std::vector<double> xin, std::vector<double> yin);
-    void publishSegList(std::vector<double> xin, std::vector<double> yin, std::string label);
+    void publishSegList(std::vector<double> xin, std::vector<double> yin, std::string label, std::string vname);
 
 private:
-    std::string vname,myvar;
-    std::vector<double> xvec,yvec;
-    std::vector<double> xsol,ysol;
+    std::vector<double> henry_xvec,henry_yvec;
+    std::vector<double> gilda_xvec,gilda_yvec;
+    std::vector<double> xsol,ysol,xtemp,ytemp;
+    std::string vname,label;
+	double visited_x,visited_y,current_obj;
+	bool compute_henry,compute_gilda;
+
     double henry_x,henry_y;
     double gilda_x,gilda_y;
 };

@@ -35,7 +35,8 @@ Processconfig = pGenPath
  AppTick = 4
  CommsTick = 4
 
-start_pos = $(START_POS)
+henry_start_pos = 80,0
+gilda_start_pos = 0,0
 }
 
 ProcessConfig = uTimerScript
@@ -49,6 +50,9 @@ ProcessConfig = uTimerScript
  event = var=VISIT_POINT, val="firstpoint",time=0
  event = var=VISIT_POINT, val="x=$[RAND_X], y=$[RAND_Y], id=$[TCOUNT]",time=0, amt=100
  event = var=VISIT_POINT, val="lastpoint", time=0
+
+ paused = true
+ pause_var = TIMER_PAUSE
 }
 
 #include plug_pShare.moos
@@ -70,6 +74,9 @@ ProcessConfig = uFldShoreBroker
   BRIDGE   = src=RETURN_ALL, alias=RETURN
   BRIDGE   = src=RETURN_$V,  alias=RETURN
   BRIDGE   = src=REFUEL_NEEDED_ALL, alias=REFUEL
+
+  BRIDGE = src = henry_TSP_UPDATES
+  BRIDGE = src = gilda_TSP_UPDATES
 }
 
 //--------------------------------------------------------

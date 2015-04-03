@@ -4,34 +4,27 @@
 initialize   DEPLOY  = true
 initialize   RETURN  = false
 initialize   STATION_KEEP = false
-initialize   LOITER  = true
 initialize   REFUEL = false
 initialize   REFUEL_STATION_KEEP = false
 
 //----------------------------------------------
-Behavior = BHV_Loiter
+Behavior = BHV_Waypoint
 {
-  name      = loiter
+  name      = tsp
   pwt       = 100
   condition = DEPLOY = true
-  condition = STATION_KEEP = false
   condition = RETURN = false
   condition = REFUEL = false
-  condition = REFUEL_STATION_KEEP = false
-  duration_idle_decay = false
+  endflag   = STATION_KEEP = true
+  UPDATES = $(VNAME)_TSP_UPDATES
+  perpetual = true
 
-   post_suffix = A
-         speed = 1.3
-     clockwise = false
-        radius = 8.0
-     nm_radius = 15.0
-       polygon = radial::$(LOITER_POS), radius=20, pts=8, snap=1, label=$(VNAME)_LOITER
-
-  visual_hints = nextpt_color=white, nextpt_lcolor=khaki
-  visual_hints = edge_color=orange, vertex_color=white
-  visual_hints = edge_size=1, vertex_size=2
+      speed = 1.2
+     radius = 3.0
+  nm_radius = 15.0
+     points = $(START_POS)
+       lead = 8
 }
-
 
 //----------------------------------------------
 Behavior = BHV_Waypoint
@@ -42,7 +35,7 @@ Behavior = BHV_Waypoint
   endflag   = STATION_KEEP = true
   perpetual = true
 
-      speed = 1.3
+      speed = 1.2
      radius = 3.0
   nm_radius = 15.0
      points = $(START_POS)
@@ -73,7 +66,7 @@ Behavior = BHV_Waypoint
   condition = REFUEL = true
   endflag   = REFUEL_STATION_KEEP = true
 
-      speed = 1.3
+      speed = 1.2
      radius = 3.0
   nm_radius = 15.0
      points = $(START_POS)
@@ -113,7 +106,7 @@ Behavior = BHV_Timer
    condition    = DEPLOY = true
    condition    = STATION_KEEP = false
    condition    = REFUEL = false
-   duration     = 300
+   duration     = 600
    duration_idle_decay = false                          
    endflag      = REFUEL = true
    updates      = TIMER_AUTO_UPDATES
