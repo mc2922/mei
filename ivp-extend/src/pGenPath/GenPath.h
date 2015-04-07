@@ -30,10 +30,10 @@ protected:
 private:
     std::vector<double> xvec, yvec;
     std::vector<int> indices;
-    std::string vname,label,seglist_label;
+    std::string vname,seglist_label;
 
     bool monitoring,deployed;
-    double visit_radius,current_wpt;
+    double visit_radius,current_wpt, last_known;
     double start_x,start_y;
     double nav_x,nav_y;
 };

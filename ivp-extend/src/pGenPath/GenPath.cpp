@@ -18,6 +18,10 @@ GenPath::GenPath()
 {
 	monitoring = false;
 	deployed = false;
+	nav_x=0;nav_y=0;
+	visit_radius=5;
+	start_x=0;start_y=0;
+	current_wpt=-1;last_known=-1;
 }
 
 //---------------------------------------------------------
@@ -56,37 +60,65 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
 		}
 		else if(key == "NAV_X"){
 			nav_x = msg.GetDouble();
-			if(monitoring&&deployed){
-				double dist = sqrt(pow(xvec[current_wpt]-nav_x,2)+pow(xvec[current_wpt]-nav_y,2));
+			if(monitoring&&deployed&&(last_known!=current_wpt)&&current_wpt>=0){
+				double dist = sqrt(pow(xvec[current_wpt]-nav_x,2)+pow(yvec[current_wpt]-nav_y,2));
 				if(dist<=visit_radius){
 					indices.push_back(current_wpt);
 					cout << current_wpt << " visited" <<endl;
+					last_known = current_wpt; //Remember visit
 				}
 			}
 		}
 		else if(key == "NAV_Y"){
 			nav_y = msg.GetDouble();
-			vector<int> indices;
-			if(monitoring&&deployed){
-				double dist = sqrt(pow(xvec[current_wpt]-nav_x,2)+pow(xvec[current_wpt]-nav_y,2));
+			if(monitoring&&deployed&&(last_known!=current_wpt)&&current_wpt>=0){
+				double dist = sqrt(pow(xvec[current_wpt]-nav_x,2)+pow(yvec[current_wpt]-nav_y,2));
 				if(dist<=visit_radius){
 					indices.push_back(current_wpt);
 					cout << current_wpt << " visited" <<endl;
+					last_known = current_wpt; //Remember visit
 				}
 			}
 		}
 		else if(key == "GENPATH_REGENERATE"){
-			double missed = xvec.size()-indices.size();
-			cout << "Missed points: " << missed << endl;
+			string dstr = msg.GetString();
+			if(dstr=="true"){
+				double missed = xvec.size()-indices.size()-1;
+				cout << "Missed points: " << missed << endl;
+				if(missed>0){
+					cout << "Regenerating"<<endl;
+					vector<double> xm; vector<double> ym;
+					int compare = 0; int original = 0;
+					while(compare<indices.size()){
+						if(original==indices[compare]){
+							compare++;
+							original++;
+						}else{
+							xm.push_back(xvec[original]);
+							ym.push_back(yvec[original]);
+							cout << "Missed: " << original <<endl;
+							original++;
+						}
+					}
+					publishSegList(xm,ym,"_regen",vname);	//Final answer
+					xvec = xm; yvec = ym;
+					m_Comms.Notify("STATION_KEEP","false");
+					indices.clear();current_wpt=-1;last_known=-1; //Reset monitoring
+				}else{
+					cout << "Finished Tour" << endl;
+				}
+			}
 		}
 		else if(key=="DEPLOY"){
 			string dstr = msg.GetString();
 			if(dstr=="true"){
 				deployed = true;
+			}else{
+				deployed = false;
 			}
 		}
 		else if(key=="WPT_INDEX"){
-			current_wpt = msg.GetDouble();
+			current_wpt = msg.GetDouble()-1;
 		}
 	}
 	return(true);
@@ -98,8 +130,11 @@ void GenPath::solveTSP()
 	//Greedy 2-Opt (Guarantee 2-approx of opt)
 	//Construct an initial solution greedily (closest point)
 	double current_obj=0;
-    std::vector<double> xsol,ysol,xtemp,ytemp;
+	std::vector<double> xsol,ysol,xtemp,ytemp;
 	double visited_x,visited_y;
+	double current_max = -1;
+	double current_x,current_y;
+	int current_ind;
 
 	cout << "Start Computing" << endl;
 	visited_x = start_x; visited_y = start_y;
@@ -107,9 +142,9 @@ void GenPath::solveTSP()
 	xtemp=xvec; ytemp=yvec;
 
 	while(!xtemp.empty()){
-		double current_max = -1;
-		double current_x,current_y;
-		int current_ind;
+		current_max = -1;
+		current_x=0; current_y=0;
+		current_ind=0;
 		for(int i=0;i<xtemp.size();i++){
 			double dist = sqrt(pow(xtemp[i]-visited_x,2)+pow(ytemp[i]-visited_y,2));
 			if(current_max<0 || dist<current_max){
@@ -118,11 +153,13 @@ void GenPath::solveTSP()
 				current_ind = i;
 			}
 		}
-		current_obj+=current_max;
-		xsol.push_back(current_x); ysol.push_back(current_y);
-		visited_x = current_x; visited_y = current_y;
-		xtemp.erase(xtemp.begin()+current_ind);
-		ytemp.erase(ytemp.begin()+current_ind);
+		if(current_max>0){
+			current_obj+=current_max;
+			xsol.push_back(current_x); ysol.push_back(current_y);
+			visited_x = current_x; visited_y = current_y;
+			xtemp.erase(xtemp.begin()+current_ind);
+			ytemp.erase(ytemp.begin()+current_ind);
+		}
 	}
 
 	cout << "Improving Solution" << endl;
@@ -140,7 +177,7 @@ void GenPath::solveTSP()
 			if(j<xsol.size()-1){
 				xtemp = xsol; ytemp = ysol; //reset
 				j=j+1;
-			}else if (j==xsol.size()-1){
+			}else if (j==xsol.size()-1 && i<xsol.size()-2){
 				xtemp = xsol; ytemp = ysol; //reset
 				i=i+1;
 				j=i+1;
@@ -149,16 +186,16 @@ void GenPath::solveTSP()
 			}
 		}
 		else{
-			current_obj = improv_obj; //improve
-			xsol = xtemp; ysol = ytemp;
+			current_obj = improv_obj; //improve objective
+			xsol = xtemp; ysol = ytemp; //accept exchange
 			i=1; //reset
 			j=i+1;
 		}
 	}
-	publishSegList(xsol,ysol,label,vname);	//Final answer
+	publishSegList(xsol,ysol,"_tsp",vname);	//Final answer
 	xvec = xsol; yvec = ysol;
 	monitoring = true;
-	cout << "Finished" << endl;
+	cout << "Finished Computing" << endl;
 }
 
 void GenPath::publishSegList(vector<double> xin, vector<double> yin, string label, string vname){
@@ -173,18 +210,17 @@ void GenPath::publishSegList(vector<double> xin, vector<double> yin, string labe
 	}
 	pointsOut << "}";
 	waypointsOut << pointsOut.str();
-	string update_str= "TSP_UPDATES";
 
-	if(vname=="henry"){
+	if(vname=="HENRY"){
 		seglist_label="edge_color=white,vertex_color=blue,vertex_size=10,edge_size=1";
 	}else{
 		seglist_label="edge_color=pink,vertex_color=red,vertex_size=10,edge_size=1";
 	}
 
-	label = "label="+vname+"_path,"+seglist_label;
-	pointsOut << ","<<label;
+	string desc = "label="+vname+label+","+seglist_label;
+	pointsOut << ","<<desc;
 	m_Comms.Notify("VIEW_SEGLIST",pointsOut.str());
-	m_Comms.Notify(update_str,waypointsOut.str());
+	m_Comms.Notify("TSP_UPDATES",waypointsOut.str());
 }
 
 double GenPath::computeTSPDist(vector<double> xin, vector<double> yin){
