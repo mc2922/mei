@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
   HazardMgr HazardMgr;
 
-  HazardMgr.Run(run_command.c_str(), mission_file.c_str(), argc, argv);
+  HazardMgr.Run(run_command.c_str(), mission_file.c_str());
   
   return(0);
 }
