@@ -23,7 +23,7 @@
 
 #include <cstdlib>
 #include <iostream>
-#include "HazardMgr_Info.h"
+#include "HazardMgrX_Info.h"
 #include "ColorParse.h"
 #include "ReleaseInfo.h"
 

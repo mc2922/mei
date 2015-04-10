@@ -23,7 +23,7 @@
 
 #include <iterator>
 #include "MBUtils.h"
-#include "HazardMgr.h"
+#include "HazardMgrX.h"
 #include "XYFormatUtilsHazard.h"
 #include "XYFormatUtilsPoly.h"
 #include "ACTable.h"
@@ -33,7 +33,7 @@ using namespace std;
 //---------------------------------------------------------
 // Constructor
 
-HazardMgr::HazardMgr()
+HazardMgrX::HazardMgrX()
 {
   // Config variables
   m_swath_width_desired = 25;
@@ -56,7 +56,7 @@ HazardMgr::HazardMgr()
 //---------------------------------------------------------
 // Procedure: OnNewMail
 
-bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
+bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 {
   AppCastingMOOSApp::OnNewMail(NewMail);
 
@@ -100,7 +100,7 @@ bool HazardMgr::OnNewMail(MOOSMSG_LIST &NewMail)
 //---------------------------------------------------------
 // Procedure: OnConnectToServer
 
-bool HazardMgr::OnConnectToServer()
+bool HazardMgrX::OnConnectToServer()
 {
    registerVariables();
    return(true);
@@ -110,7 +110,7 @@ bool HazardMgr::OnConnectToServer()
 // Procedure: Iterate()
 //            happens AppTick times per second
 
-bool HazardMgr::Iterate()
+bool HazardMgrX::Iterate()
 {
   AppCastingMOOSApp::Iterate();
 
@@ -128,7 +128,7 @@ bool HazardMgr::Iterate()
 // Procedure: OnStartUp()
 //            happens before connection is open
 
-bool HazardMgr::OnStartUp()
+bool HazardMgrX::OnStartUp()
 {
   AppCastingMOOSApp::OnStartUp();
 
@@ -180,7 +180,7 @@ bool HazardMgr::OnStartUp()
 //---------------------------------------------------------
 // Procedure: registerVariables
 
-void HazardMgr::registerVariables()
+void HazardMgrX::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
   m_Comms.Register("UHZ_DETECTION_REPORT", 0);
@@ -193,7 +193,7 @@ void HazardMgr::registerVariables()
 //---------------------------------------------------------
 // Procedure: postSensorConfigRequest
 
-void HazardMgr::postSensorConfigRequest()
+void HazardMgrX::postSensorConfigRequest()
 {
   string request = "vname=" + m_host_community;
   
@@ -208,7 +208,7 @@ void HazardMgr::postSensorConfigRequest()
 //---------------------------------------------------------
 // Procedure: postSensorInfoRequest
 
-void HazardMgr::postSensorInfoRequest()
+void HazardMgrX::postSensorInfoRequest()
 {
   string request = "vname=" + m_host_community;
 
@@ -219,7 +219,7 @@ void HazardMgr::postSensorInfoRequest()
 //---------------------------------------------------------
 // Procedure: handleMailSensorConfigAck
 
-bool HazardMgr::handleMailSensorConfigAck(string str)
+bool HazardMgrX::handleMailSensorConfigAck(string str)
 {
   // Expected ack parameters:
   string vname, width, pd, pfa, pclass;
@@ -272,7 +272,7 @@ bool HazardMgr::handleMailSensorConfigAck(string str)
 //      Note: The detection report should look something like:
 //            UHZ_DETECTION_REPORT = vname=betty,x=51,y=11.3,label=12 
 
-bool HazardMgr::handleMailDetectionReport(string str)
+bool HazardMgrX::handleMailDetectionReport(string str)
 {
   m_detection_reports++;
 
@@ -309,7 +309,7 @@ bool HazardMgr::handleMailDetectionReport(string str)
 //---------------------------------------------------------
 // Procedure: handleMailReportRequest
 
-void HazardMgr::handleMailReportRequest()
+void HazardMgrX::handleMailReportRequest()
 {
   m_summary_reports++;
 
@@ -332,7 +332,7 @@ void HazardMgr::handleMailReportRequest()
 //                       search_region = pts={-150,-75:-150,-50:40,-50:40,-75}
 
 
-void HazardMgr::handleMailMissionParams(string str)
+void HazardMgrX::handleMailMissionParams(string str)
 {
   vector<string> svector = parseStringZ(str, ',', "{");
   unsigned int i, vsize = svector.size();
@@ -347,7 +347,7 @@ void HazardMgr::handleMailMissionParams(string str)
 //------------------------------------------------------------
 // Procedure: buildReport()
 
-bool HazardMgr::buildReport() 
+bool HazardMgrX::buildReport()
 {
   m_msgs << "Config Requested:"                                  << endl;
   m_msgs << "    swath_width_desired: " << m_swath_width_desired << endl;

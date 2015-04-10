@@ -28,11 +28,11 @@
 #include "XYHazardSet.h"
 #include "XYPolygon.h"
 
-class HazardMgr : public AppCastingMOOSApp
+class HazardMgrX : public AppCastingMOOSApp
 {
  public:
-   HazardMgr();
-   ~HazardMgr() {};
+   HazardMgrX();
+   ~HazardMgrX() {};
 
  protected: // Standard MOOSApp functions to overload  
    bool OnNewMail(MOOSMSG_LIST &NewMail);
