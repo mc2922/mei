@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pHazardPath config block
+
+ProcessConfig = pHazardPath
+{
+    AppTick = 5
+    IterateMode = 0 // regular iterate and mail
+}
+

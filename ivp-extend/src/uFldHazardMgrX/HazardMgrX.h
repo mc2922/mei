@@ -44,7 +44,6 @@ class HazardMgrX : public AppCastingMOOSApp
    bool buildReport();
 
  protected: // Registration, Configuration, Mail handling utils
-   void registerVariables();
    bool handleMailSensorConfigAck(std::string);
    bool handleMailSensorOptionsSummary(std::string) {return(true);};
    bool handleMailDetectionReport(std::string);
@@ -79,8 +78,6 @@ class HazardMgrX : public AppCastingMOOSApp
 
    XYHazardSet m_hazard_set;
    XYPolygon   m_search_region;
-   
-   double      m_transit_path_width;
 };
 
 #endif 
