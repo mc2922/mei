@@ -375,7 +375,7 @@ void HazardMgrX::segmentSpace(){
 		if(id==2&&state=="coop"){coopeast_it--;}
 	}
 
-	if(ym-ymin>-10){
+	if(ym-ymin>-skew){
 		publishSegList(tempx,tempy);
 	}
 	else{
@@ -494,7 +494,7 @@ void HazardMgrX::solveTSP(){
 	}
 	if(hlist.count()>4){
 		xsol.push_back((xmax+xmin)/2);
-		ysol.push_back(ymax-4*mywest_it*skew-coopwest_it*4*skew_coop-lists_counter*2*skew_coop);
+		ysol.push_back(ymax-mywest_it*3*skew-coopwest_it*3*skew_coop-lists_counter*2*skew_coop);
 	}
 	publishSegList(xsol,ysol);	//Final answer
 	cout << "Finished Computing" << endl;
