@@ -152,6 +152,7 @@ ProcessConfig = pMarineViewer
   vehicles_shape_scale = 1.5
   vehicles_name_mode   = names+shortmode
   marker_viewable_labels = false
+  marker_viewable_all = false
 
   appcast_width = 30
   nodes_font_size=xlarge

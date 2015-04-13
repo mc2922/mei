@@ -131,7 +131,7 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 					haz.set_y(ty);
 					hlist.add_list()->CopyFrom(haz);
 					int tcount=hlist.count();
-					if(hlist.count<41){
+					if(hlist.count()<41){
 					tcount++;}
 					hlist.set_count(tcount);
 				}
@@ -490,9 +490,11 @@ void HazardMgrX::solveTSP(){
 		}
 	}
 	if(hlist.count()>4){
-	xsol.push_back((xmax+xmin)/2);
-	double cycles = current_obj/550;
-	ysol.push_back(ymax-4*myeast_it*skew-coopeast_it*4*skew_coop-cycles*4*skew_coop);
+		double xd = (xmax+xmin)/2-xsol[xsol.size()];
+		double yd = (ymax+ymin)/2-ysol[ysol.size()];
+		double cycles = (current_obj+sqrt(pow(xd,2)+pow(yd,2)))/550;
+		xsol.push_back((xmax+xmin)/2);
+		ysol.push_back(ymax-4*mywest_it*skew-coopwest_it*4*skew_coop-cycles*4*skew_coop);
 	}
 	publishSegList(xsol,ysol);	//Final answer
 	cout << "Finished Computing" << endl;
