@@ -215,6 +215,9 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				else if(state=="tsptransit"){
 					state = "tsp";
 				}
+				else if(state=="lasttransit"){
+					state = "tsp";
+				}
 			}
 		}
 
@@ -327,7 +330,7 @@ bool HazardMgrX::Iterate()
 			solveTSP();
 			if(hlist.count()>4){state="cooptransit";}
 			else{
-				state="tsp";
+				state="lasttransit";
 			}
 		}
 		else if(state=="tsp"){
@@ -443,63 +446,70 @@ void HazardMgrX::solveTSP(){
 	double current_x,current_y;
 	int current_ind;
 
-	cout << "Start Computing" << endl;
-	cout << "TSP-Size: " << xvec.size() << endl;
 	visited_x = myx; visited_y = myy;
 	xsol.push_back(visited_x); ysol.push_back(visited_y);
 	xtemp=xvec; ytemp=yvec;
 
-	while(!xtemp.empty()){
-		current_max = -1;
-		current_x=0; current_y=0;
-		current_ind=0;
-		for(int i=0;i<xtemp.size();i++){
-			double dist = sqrt(pow(xtemp[i]-visited_x,2)+pow(ytemp[i]-visited_y,2));
-			if(current_max<0 || dist<current_max){
-				current_max = dist;
-				current_x = xtemp[i]; current_y = ytemp[i];
-				current_ind = i;
+	if(xvec.size()>1){
+
+		cout << "Start Computing" << endl;
+		cout << "TSP-Size: " << xvec.size() << endl;
+
+		while(!xtemp.empty()){
+			current_max = -1;
+			current_x=0; current_y=0;
+			current_ind=0;
+			for(int i=0;i<xtemp.size();i++){
+				double dist = sqrt(pow(xtemp[i]-visited_x,2)+pow(ytemp[i]-visited_y,2));
+				if(current_max<0 || dist<current_max){
+					current_max = dist;
+					current_x = xtemp[i]; current_y = ytemp[i];
+					current_ind = i;
+				}
+			}
+			if(current_max>0){
+				current_obj+=current_max;
+				xsol.push_back(current_x); ysol.push_back(current_y);
+				visited_x = current_x; visited_y = current_y;
+				xtemp.erase(xtemp.begin()+current_ind);
+				ytemp.erase(ytemp.begin()+current_ind);
 			}
 		}
-		if(current_max>0){
-			current_obj+=current_max;
-			xsol.push_back(current_x); ysol.push_back(current_y);
-			visited_x = current_x; visited_y = current_y;
-			xtemp.erase(xtemp.begin()+current_ind);
-			ytemp.erase(ytemp.begin()+current_ind);
-		}
-	}
 
-	cout << "Improving Solution" << endl;
-	xtemp=xsol; ytemp=ysol;
+		cout << "Improving Solution" << endl;
+		xtemp=xsol; ytemp=ysol;
 
-	//Improvement step - make pairwise exchanges
-	bool improving = true;
-	int i = 1; int j = i+1;
-	double improv_obj = 0;
-	while(improving){
-		xtemp[i]=xtemp[j]; ytemp[i]=ytemp[j];
-		xtemp[j]= xsol[i]; ytemp[j]=ysol[i];
-		improv_obj = computeTSPDist(xtemp,ytemp);
-		if(improv_obj>=current_obj){ //no improvement
-			if(j<xsol.size()-1){
-				xtemp = xsol; ytemp = ysol; //reset
-				j=j+1;
-			}else if (j==xsol.size()-1 && i<xsol.size()-2){
-				xtemp = xsol; ytemp = ysol; //reset
-				i=i+1;
+		//Improvement step - make pairwise exchanges
+		bool improving = true;
+		int i = 1; int j = i+1;
+		double improv_obj = 0;
+		while(improving){
+			xtemp[i]=xtemp[j]; ytemp[i]=ytemp[j];
+			xtemp[j]= xsol[i]; ytemp[j]=ysol[i];
+			improv_obj = computeTSPDist(xtemp,ytemp);
+			if(improv_obj>=current_obj){ //no improvement
+				if(j<xsol.size()-1){
+					xtemp = xsol; ytemp = ysol; //reset
+					j=j+1;
+				}else if (j==xsol.size()-1 && i<xsol.size()-2){
+					xtemp = xsol; ytemp = ysol; //reset
+					i=i+1;
+					j=i+1;
+				}else{//Terminate
+					improving = false;	//Finished improving
+				}
+			}
+			else{
+				current_obj = improv_obj; //improve objective
+				xsol = xtemp; ysol = ytemp; //accept exchange
+				i=1; //reset
 				j=i+1;
-			}else{//Terminate
-				improving = false;	//Finished improving
 			}
 		}
-		else{
-			current_obj = improv_obj; //improve objective
-			xsol = xtemp; ysol = ytemp; //accept exchange
-			i=1; //reset
-			j=i+1;
-		}
+	}else{
+		xsol.push_back(xvec[1]);ysol.push_back(yvec[1]);
 	}
+
 	if(hlist.count()>4){
 		xsol.push_back((xmax+xmin)/2);
 		double yguess = ymax-mywest_it*3*skew-coopwest_it*3*skew_coop-lists_counter*2*skew_coop;
