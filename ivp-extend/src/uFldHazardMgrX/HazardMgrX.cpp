@@ -320,8 +320,6 @@ bool HazardMgrX::Iterate()
 			if(hlist.count()>4){state="cooptransit";}
 			else{
 				state="tsp";
-				xvec=xset;
-				yvec=yset;
 			}
 		}
 		else if(state=="tsp"){
@@ -438,6 +436,7 @@ void HazardMgrX::solveTSP(){
 	int current_ind;
 
 	cout << "Start Computing" << endl;
+	cout << "TSP-Size: " << xvec.size() << endl;
 	visited_x = myx; visited_y = myy;
 	xsol.push_back(visited_x); ysol.push_back(visited_y);
 	xtemp=xvec; ytemp=yvec;
