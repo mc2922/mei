@@ -134,7 +134,7 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 					hlist.add_list()->CopyFrom(haz);
 					int tcount=hlist.count();
 					if(hlist.count()<41){
-					tcount++;}
+						tcount++;}
 					hlist.set_count(tcount);
 				}
 				event<<"New Detection, label=";
@@ -206,6 +206,9 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				else if(state=="heard"){
 					state = "loners";
 				}
+				else if(state=="heardcoop"){
+					state = "coop";
+				}
 				else if(state=="heardend"){
 					state = "tsp";
 				}
@@ -246,7 +249,12 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				codec->decode(sval,&hlist);
 				cout << "Received " << hlist.count() << " points from K" << endl;
 				lists_counter++;
-				state = "coop";
+				if(state=="cooptransit"){
+					state = "heardcoop";
+				}
+				else{
+					state = "coop";
+				}
 			}
 		}
 
@@ -276,8 +284,8 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 		else if(key == "HAZARDSET_REQUEST")
 			if(id==1){postHazardSetReport();}
 
-		else
-			reportRunWarning("Unhandled Mail: " + key);
+			else
+				reportRunWarning("Unhandled Mail: " + key);
 	}
 
 	return(true);
@@ -496,7 +504,7 @@ void HazardMgrX::solveTSP(){
 		xsol.push_back((xmax+xmin)/2);
 		double yguess = ymax-mywest_it*3*skew-coopwest_it*3*skew_coop-lists_counter*2*skew_coop;
 		if(yguess>ymin+10){
-		ysol.push_back(yguess);
+			ysol.push_back(yguess);
 		}else{
 			ysol.push_back(ymin+10);
 		}
