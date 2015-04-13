@@ -74,6 +74,7 @@ HazardMgrX::HazardMgrX()
 	start_time = -1;
 	lists_counter = 0;
 	reported = false;
+	repeat_message_time = 0;
 }
 
 //---------------------------------------------------------
@@ -156,7 +157,8 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				MOOSChomp(sval,"=");
 				int tlabel = boost::lexical_cast<int>(sval);
 				vector<int>::iterator it = find(labelset.begin(), labelset.end(), tlabel);
-				typeset[distance(labelset.begin(),it)]=ttype;
+				if(typeset[distance(labelset.begin(),it)]!="hazard"){
+					typeset[distance(labelset.begin(),it)]=ttype;}
 				cset[distance(labelset.begin(),it)]++;
 			}
 			else if(what=="label"){
@@ -164,7 +166,8 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				MOOSChomp(sval,"=");
 				string ttype = sval;
 				vector<int>::iterator it = find(labelset.begin(), labelset.end(), tlabel);
-				typeset[distance(labelset.begin(),it)]=ttype;
+				if(typeset[distance(labelset.begin(),it)]!="hazard"){
+					typeset[distance(labelset.begin(),it)]=ttype;}
 				cset[distance(labelset.begin(),it)]++;
 			}
 			else{
@@ -352,6 +355,11 @@ bool HazardMgrX::Iterate()
 			state="transit";
 			switchType();
 		}
+		else if(state=="mission_end"){
+			if(MOOSTime()-repeat_message_time>60){
+				m_Comms.Notify("INTERVEHICLE_MESSAGE","end");
+			}
+		}
 	}
 
 	//AppCastingMOOSApp::PostReport();
@@ -402,6 +410,7 @@ void HazardMgrX::segmentSpace(){
 			string bytes;
 			codec->encode(&bytes,hlist);
 			m_Comms.Notify("INTERVEHICLE_MESSAGE_BINARY",(void *) bytes.data(), bytes.size());
+			repeat_message_time = MOOSTime();
 		}
 	}
 }
@@ -425,7 +434,7 @@ void HazardMgrX::readHazardList(){
 
 		for(int i=0;i<xset.size();i++){
 			double dist = sqrt(pow(x1-xset[i],2)+pow(y1-yset[i],2));
-			if(dist<2){found=true;}
+			if(dist<1){found=true;}
 		}
 
 		if(!found){
@@ -597,6 +606,9 @@ void HazardMgrX::handleMailMissionParams(string str)
 			MOOSChomp(value,",");
 			ymin = boost::lexical_cast<double>(MOOSChomp(value,":"));
 			xmax = boost::lexical_cast<double>(MOOSChomp(value,","));
+		}
+		else if(param=="max_time"){
+			max_time = boost::lexical_cast<double>(value)-20;
 		}
 	}
 }

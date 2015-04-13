@@ -96,6 +96,7 @@ class HazardMgrX : public AppCastingMOOSApp
    double skew_coop,skew;
    double start_time,max_time;
    bool reported;
+   double repeat_message_time;
 
    goby::acomms::DCCLCodec* codec;
    HazardList hlist;

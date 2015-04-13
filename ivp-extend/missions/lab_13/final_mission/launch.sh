@@ -4,7 +4,7 @@
 #-------------------------------------------------------
 TIME_WARP=1
 JUST_MAKE="no"
-HAZARD_FILE="hazards_01.txt"
+HAZARD_FILE="hazards.txt"
 PEN_MISSED_HAZ=150
 PEN_FALARM=25
 MAX_TIME=7200
@@ -65,14 +65,14 @@ nsplug meta_shoreside.moos targ_shoreside.moos -f WARP=$TIME_WARP \
 nsplug meta_vehicle.moos targ_$VNAME1.moos -f WARP=$TIME_WARP  \
     VNAME=$VNAME1         START_POS=$START_POS1                \
     VPORT="9001"          SHARE_LISTEN="9301"                  \
-    SHOREIP="localhost"   SHORE_LISTEN="9200"                  \
+    SHOREIP="localhost"    SHORE_LISTEN="9200"                  \
     VNAME1=$VNAME1        VNAME2=$VNAME2                       \
     VTYPE=UUV 
 
 nsplug meta_vehicle.moos targ_$VNAME2.moos -f WARP=$TIME_WARP  \
     VNAME=$VNAME2         START_POS=$START_POS2                \
     VPORT="9002"          SHARE_LISTEN="9302"                  \
-    SHOREIP="localhost"   SHORE_LISTEN="9200"                  \
+    SHOREIP="localhost"    SHORE_LISTEN="9200"                  \
     VNAME1=$VNAME1        VNAME2=$VNAME2                       \
     VTYPE=UUV 
 
@@ -93,7 +93,7 @@ printf "Launching $VNAME1 MOOS Community (WARP=%s) \n" $TIME_WARP
 pAntler targ_$VNAME1.moos >& /dev/null &
 printf "Launching $VNAME2 MOOS Community (WARP=%s) \n" $TIME_WARP
 pAntler targ_$VNAME2.moos >& /dev/null &
-printf "Launching $SNAME MOOS Community (WARP=%s) \n"  $TIME_WARP
+#printf "Launching $SNAME MOOS Community (WARP=%s) \n"  $TIME_WARP
 pAntler targ_shoreside.moos >& /dev/null &
 printf "Done \n"
 
