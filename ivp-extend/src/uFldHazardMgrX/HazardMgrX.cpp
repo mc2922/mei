@@ -130,7 +130,9 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 					haz.set_x(tx);
 					haz.set_y(ty);
 					hlist.add_list()->CopyFrom(haz);
-					int tcount = hlist.count()+1;
+					int tcount=hlist.count();
+					if(hlist.count<41){
+					tcount++;}
 					hlist.set_count(tcount);
 				}
 				event<<"New Detection, label=";
