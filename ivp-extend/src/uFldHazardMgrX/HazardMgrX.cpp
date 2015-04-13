@@ -495,7 +495,7 @@ void HazardMgrX::solveTSP(){
 	}
 	if(hlist.count()>4){
 		xsol.push_back((xmax+xmin)/2);
-		ysol.push_back(ymax-4*mywest_it*skew-coopwest_it*4*skew_coop-lists_counter*4*skew_coop);
+		ysol.push_back(ymax-4*mywest_it*skew-coopwest_it*4*skew_coop-lists_counter*2*skew_coop);
 	}
 	publishSegList(xsol,ysol);	//Final answer
 	cout << "Finished Computing" << endl;
