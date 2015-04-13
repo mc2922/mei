@@ -72,7 +72,6 @@ HazardMgrX::HazardMgrX()
 	coopwest_it = 0;
 	state = "mission_start";
 	start_time = -1;
-	time_counter = 0;
 }
 
 //---------------------------------------------------------
@@ -170,12 +169,6 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 			}
 		}
 
-		else if(key == "HAZARDSET_REQUEST"){
-			string summary_report = getHazardSetReport();
-			Notify("HAZARDSET_REPORT", summary_report);
-			m_summary_reports++;
-		}
-
 		else if(key=="TSP_END"){
 			if(sval=="true"){
 				if((state=="transit"||state=="cooptransit")){
@@ -198,8 +191,9 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 						}
 						else{
 							stringstream msgOut;
-							msgOut << "east=" << myeast_it <<",";
-							msgOut << "west=" << mywest_it;
+							msgOut << myeast_it <<",";
+							msgOut << mywest_it <<",";
+							msgOut << type;
 							m_Comms.Notify("INTERVEHICLE_MESSAGE",msgOut.str());
 							state="loners";
 						}
@@ -208,29 +202,46 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				else if(state=="heard"){
 					state = "loners";
 				}
+				else if(state=="heardend"){
+					state = "tsp";
+				}
+				else if(state=="tsptransit"){
+					state = "tsp";
+				}
 			}
 		}
 
 		else if(key=="INTERVEHICLE_MESSAGE"){
 			if(id==1){
-				MOOSChomp(sval,"=");
-				coopeast_it = boost::lexical_cast<int>(MOOSChomp(sval,","));
-				MOOSChomp(sval,"=");
-				coopwest_it = boost::lexical_cast<int>(sval);
-				if(state=="waiting"){
-					state = "loners";
-				}else{
-					state = "heard";
+				if(sval!="end"){
+					coopeast_it = boost::lexical_cast<int>(MOOSChomp(sval,","));
+					coopwest_it = boost::lexical_cast<int>(MOOSChomp(sval,","));
+					if(state=="waiting"){
+						state = "loners";
+						type = sval;
+						switchType();
+					}
+					else if(state=="transit"){
+						state = "heard";
+					}
+				}
+				else{
+					if(state=="waiting"){
+						state = "tsp";
+					}
+					else if(state=="transit"){
+						state = "heardend";
+					}
 				}
 			}
 		}
 
 		else if(key=="INTERVEHICLE_MESSAGE_BINARY"){
 			if(id==1){
+				hlist.Clear();
 				codec->decode(sval,&hlist);
 				cout << "Received " << hlist.count() << " points from K" << endl;
 				state = "coop";
-				time_counter = MOOSTime();
 			}
 		}
 
@@ -257,6 +268,9 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 		else if(key == "UHZ_MISSION_PARAMS")
 			handleMailMissionParams(sval);
 
+		else if(key == "HAZARDSET_REQUEST")
+			if(id==1){postHazardSetReport();}
+
 		else
 			reportRunWarning("Unhandled Mail: " + key);
 	}
@@ -280,8 +294,11 @@ bool HazardMgrX::Iterate()
 
 	if(start_time==-1){return(true);}
 	if(MOOSTime()-start_time>=max_time){
-		m_Comms.Notify("RETURN","true");
-		state="mission_end";
+		m_Comms.Notify("STATION","true");
+
+		if(id==1){
+			postHazardSetReport();
+		}
 		return(true);
 	}
 
@@ -292,16 +309,20 @@ bool HazardMgrX::Iterate()
 			switchType();
 		}
 		else if(state=="coop"){
+			readHazardList();
 			solveTSP();
-			state="cooptransit";
-			switchType();
-		}
-		else if(state=="cooptransit"){
-			if(MOOSTime()-time_counter>300){
-				switchType();
-				time_counter = MOOSTime();
-				cycle_counter++;
+			if(hlist.count()>4){state="cooptransit";}
+			else{
+				state="tsp";
+				xvec=xset;
+				yvec=yset;
 			}
+		}
+		else if(state=="tsp"){
+			xvec=xset;
+			yvec=yset;
+			solveTSP();
+			state = "tsptransit";
 		}
 	}
 
@@ -333,7 +354,6 @@ void HazardMgrX::segmentSpace(){
 		tempx.push_back(xmax);tempy.push_back(ym-skew);
 		tempx.push_back(xmax); tempy.push_back(ym-3*skew);
 		tempx.push_back((xmax+xmin)/2+5); tempy.push_back(ym-3*skew);
-		publishSegList(tempx,tempy);
 		myeast_it++;
 		coopwest_it++;
 
@@ -345,25 +365,42 @@ void HazardMgrX::segmentSpace(){
 		tempx.push_back(xmin);tempy.push_back(ym-skew);
 		tempx.push_back(xmin);tempy.push_back(ym-3*skew);
 		tempx.push_back((xmax+xmin)/2-5); tempy.push_back(ym-3*skew);
-		publishSegList(tempx,tempy);
 		mywest_it++;
 		coopeast_it++;
 
 		if(id==2&&state=="coop"){coopeast_it--;}
 	}
+
+	if(ym-ymin>-10){
+		publishSegList(tempx,tempy);
+	}
+	else{
+		if(id==1){
+			state="tsp";
+			xvec=xset;
+			yvec=yset;
+		}
+		else if(id==2){
+			m_Comms.Notify("STATION","true");
+			state = "mission_end";
+			cout << "sending "<<hlist.count() << " points" << endl;
+			string bytes;
+			codec->encode(&bytes,hlist);
+			m_Comms.Notify("INTERVEHICLE_MESSAGE_BINARY",(void *) bytes.data(), bytes.size());
+		}
+	}
 }
 
 void HazardMgrX::switchType(){
-	cout << "switching sides" << endl;
 	if(type=="east")
 		type="west";
 	else if(type=="west")
 		type="east";
 }
 
-void HazardMgrX::solveTSP()
-{
-	vector<double> xvec,yvec;
+void HazardMgrX::readHazardList(){
+	xvec.clear();yvec.clear();
+
 	//Generate list of points from HazardList
 	for(int i=0;i<hlist.count();i++){
 		double x1,x2,y1,y2;
@@ -381,7 +418,9 @@ void HazardMgrX::solveTSP()
 			yvec.push_back(y1);
 		}
 	}
+}
 
+void HazardMgrX::solveTSP(){
 	//Use the following heuristic to generate a path:
 	//Greedy 2-Opt (Guarantee 2-approx of opt)
 	//Construct an initial solution greedily (closest point)
@@ -448,9 +487,11 @@ void HazardMgrX::solveTSP()
 			j=i+1;
 		}
 	}
+	if(hlist.count()>4){
 	xsol.push_back((xmax+xmin)/2);
 	double cycles = current_obj/550;
-	ysol.push_back(ymax-4*myeast_it*skew-coopeast_it*4*skew_coop-cycles*skew_coop);
+	ysol.push_back(ymax-4*myeast_it*skew-coopeast_it*4*skew_coop-cycles*4*skew_coop);
+	}
 	publishSegList(xsol,ysol);	//Final answer
 	cout << "Finished Computing" << endl;
 }
@@ -492,7 +533,7 @@ void HazardMgrX::publishSegList(vector<double> xin, vector<double> yin){
 	m_Comms.Notify("STATION","false");
 }
 
-string HazardMgrX::getHazardSetReport()
+void HazardMgrX::postHazardSetReport()
 {
 	stringstream report;
 	report <<"source="<<m_host_community<<"#";
@@ -504,7 +545,8 @@ string HazardMgrX::getHazardSetReport()
 			report<<"label="<<labelset[i]<<"#";
 		}
 	}
-	return report.str();
+
+	m_Comms.Notify("HAZARDSET_REPORT", report.str());
 }
 
 //---------------------------------------------------------

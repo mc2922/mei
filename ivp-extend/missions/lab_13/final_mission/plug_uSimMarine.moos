@@ -10,7 +10,6 @@ ProcessConfig = uSimMarine
   PREFIX    = NAV
 
   turn_rate = 100
-  turn_loss = 1
 
 #ifdef VTYPE UUV
   BUOYANCY_RATE    = 0.025

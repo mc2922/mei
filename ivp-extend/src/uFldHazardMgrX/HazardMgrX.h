@@ -53,10 +53,11 @@ class HazardMgrX : public AppCastingMOOSApp
  protected: 
    void postSensorConfigRequest();
    void postSensorInfoRequest();
-   std::string getHazardSetReport();
+   void postHazardSetReport();
    void publishSegList(std::vector<double> xin, std::vector<double> yin);
    void segmentSpace();
    void solveTSP();
+   void readHazardList();
    double computeTSPDist(std::vector<double> xin, std::vector<double> yin);
    void switchType();
 
@@ -79,7 +80,7 @@ class HazardMgrX : public AppCastingMOOSApp
    double m_swath_width_granted;
    double m_pd_granted;
 
-   std::vector<double> xset,yset;
+   std::vector<double> xset,yset,xvec,yvec;
    std::vector<int> labelset;
    std::vector<std::string> typeset;
    std::vector<int> dset,cset;
@@ -93,8 +94,6 @@ class HazardMgrX : public AppCastingMOOSApp
    std::string type;
    double skew_coop,skew;
    double start_time,max_time;
-   double time_counter;
-   int cycle_counter;
 
    goby::acomms::DCCLCodec* codec;
    HazardList hlist;
