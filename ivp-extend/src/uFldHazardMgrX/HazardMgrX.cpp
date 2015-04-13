@@ -507,16 +507,16 @@ void HazardMgrX::solveTSP(){
 			}
 		}
 	}else{
-		xsol.push_back(xvec[1]);ysol.push_back(yvec[1]);
+		xsol.push_back(xvec[0]);ysol.push_back(yvec[0]);
 	}
 
 	if(hlist.count()>4){
 		xsol.push_back((xmax+xmin)/2);
 		double yguess = ymax-mywest_it*3*skew-coopwest_it*3*skew_coop-lists_counter*2*skew_coop;
-		if(yguess>ymin+10){
+		if(yguess>ymin+20){
 			ysol.push_back(yguess);
 		}else{
-			ysol.push_back(ymin+10);
+			ysol.push_back(ymin+20);
 		}
 	}
 	publishSegList(xsol,ysol);	//Final answer
