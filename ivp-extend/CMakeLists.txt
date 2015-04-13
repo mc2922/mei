@@ -25,7 +25,7 @@ SET(BUILD_SHORE_APPS TRUE CACHE BOOL "Build shore apps")
 
 find_path(HOVERGROUP_LIBRARIES
             NAMES src/lib_HoverAcomms
-            PATHS ../../hover-kayak/code/marine/libraries
+            PATHS ../../hover-kayak/code/libraries
             NO_DEFAULT_PATH )
 
 FILE(GLOB HOVERGROUP_LIB_DIRECTORIES 
