@@ -353,7 +353,7 @@ void HazardMgrX::segmentSpace(){
 	cout << "meast: "<<myeast_it<<" mwest: "<<mywest_it << " ceast: " << coopeast_it << " cwest: " << coopwest_it << endl;
 	//cout<<"type="<<type<<" xs="<<xmin<<" xm="<<xmax<<" ys="<<ymin<<" ym="<<ym<<endl;
 	if(type=="east"){
-		ym = ymax - myeast_it*4*skew - coopeast_it*4*skew_coop;
+		ym = ymax - myeast_it*3*skew - coopeast_it*3*skew_coop;
 		tempx.push_back((xmin+xmax)/2+5); tempy.push_back(ym-skew);
 		tempx.push_back(xmax);tempy.push_back(ym-skew);
 		tempx.push_back(xmax); tempy.push_back(ym-3*skew);
@@ -364,7 +364,7 @@ void HazardMgrX::segmentSpace(){
 		if(id==2&&state=="coop"){coopwest_it--;}
 	}
 	else if(type=="west"){
-		ym = ymax - mywest_it*4*skew - coopwest_it*4*skew_coop;
+		ym = ymax - mywest_it*3*skew - coopwest_it*3*skew_coop;
 		tempx.push_back((xmax+xmin)/2-5); tempy.push_back(ym-skew);
 		tempx.push_back(xmin);tempy.push_back(ym-skew);
 		tempx.push_back(xmin);tempy.push_back(ym-3*skew);
