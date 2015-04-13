@@ -72,6 +72,8 @@ HazardMgrX::HazardMgrX()
 	coopwest_it = 0;
 	state = "mission_start";
 	start_time = -1;
+	lists_counter = 0;
+	reported = false;
 }
 
 //---------------------------------------------------------
@@ -243,6 +245,7 @@ bool HazardMgrX::OnNewMail(MOOSMSG_LIST &NewMail)
 				hlist.Clear();
 				codec->decode(sval,&hlist);
 				cout << "Received " << hlist.count() << " points from K" << endl;
+				lists_counter++;
 				state = "coop";
 			}
 		}
@@ -298,8 +301,9 @@ bool HazardMgrX::Iterate()
 	if(MOOSTime()-start_time>=max_time){
 		m_Comms.Notify("STATION","true");
 
-		if(id==1){
+		if(id==1&&!reported){
 			postHazardSetReport();
+			reported = true;
 		}
 		return(true);
 	}
@@ -490,11 +494,8 @@ void HazardMgrX::solveTSP(){
 		}
 	}
 	if(hlist.count()>4){
-		double xd = (xmax+xmin)/2-xsol[xsol.size()];
-		double yd = (ymax+ymin)/2-ysol[ysol.size()];
-		double cycles = (current_obj+sqrt(pow(xd,2)+pow(yd,2)))/550;
 		xsol.push_back((xmax+xmin)/2);
-		ysol.push_back(ymax-4*mywest_it*skew-coopwest_it*4*skew_coop-cycles*4*skew_coop);
+		ysol.push_back(ymax-4*mywest_it*skew-coopwest_it*4*skew_coop-lists_counter*4*skew_coop);
 	}
 	publishSegList(xsol,ysol);	//Final answer
 	cout << "Finished Computing" << endl;

@@ -88,12 +88,14 @@ class HazardMgrX : public AppCastingMOOSApp
    int id;
    int myeast_it,mywest_it;
    int coopeast_it,coopwest_it;
+   int lists_counter;
    double myx,myy;
    double xmin,xmax,ymin,ymax;
    double ym;
    std::string type;
    double skew_coop,skew;
    double start_time,max_time;
+   bool reported;
 
    goby::acomms::DCCLCodec* codec;
    HazardList hlist;

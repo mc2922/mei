@@ -36,12 +36,12 @@ ProcessConfig = uFldHazardMgrX
 #ifdef VNAME VNAME1
   swath_width = 5
   swath_width_coop = 10
-  sensor_pd   = 1
+  sensor_pd = 0.8
   id = 1
 #elseifdef VNAME VNAME2
   swath_width = 10
   swath_width_coop = 5
-  sensor_pd   = 1
+  sensor_pd   = 0.8
   id = 2
 #endif
   report_name = $(VNAME)
