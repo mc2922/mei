@@ -9,5 +9,5 @@
 #protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOS})
 file(GLOB PROTO_SRCS ./*.pb.cc)
 file(GLOB PROTO_HDRS ./*.pb.h)
-add_library(hovergroup_proto ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(hovergroup_proto ${PROTOBUF_LIBRARY})
+add_library(mei_proto ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(mei_proto ${PROTOBUF_LIBRARY})

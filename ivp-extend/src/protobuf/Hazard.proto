@@ -1,0 +1,29 @@
+/*
+ * hovergroup_proto
+ *        File: Hazard.proto
+ *  Created on: April 12, 2015
+ *      Author: Mei Cheung
+ */
+
+import "goby/acomms/protobuf/dccl_option_extensions.proto";
+
+message Hazard
+{
+  option (dccl.msg).id = 126;
+  option (dccl.msg).max_bytes = 100;
+  required double x = 1 [(dccl.field).min=-150,
+                                 (dccl.field).max=400,
+                                 (dccl.field).precision=0];
+  required double y = 2 [(dccl.field).min=-400,
+                                 (dccl.field).max=-75,
+                                 (dccl.field).precision=0];
+}
+
+message HazardList
+{ 
+  option (dccl.msg).id = 127;
+  option (dccl.msg).max_bytes = 100;
+  required int32 count = 1 [(dccl.field).min=0,
+                          (dccl.field).max=100];
+  repeated Hazard list = 2 [ (dccl.field).max_repeat=41 ];
+}

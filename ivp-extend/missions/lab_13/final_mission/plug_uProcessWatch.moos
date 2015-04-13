@@ -13,7 +13,7 @@ ProcessConfig = uProcessWatch
 
   WATCH  = uSimMarine
   WATCH  = pShare*
-  WATCH  = pLogger
+  //WATCH  = pLogger
   WATCH  = pNodeReporter
   WATCH  = pMarinePID
   WATCH  = pHelmIvP

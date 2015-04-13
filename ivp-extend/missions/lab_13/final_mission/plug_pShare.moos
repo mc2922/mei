@@ -8,6 +8,11 @@ ProcessConfig = pShare
 
   input = route =  localhost:$(SHARE_LISTEN)
 
+#ifdef VNAME VNAME2
+  output = INTERVEHICLE_MESSAGE->localhost:9301
+ output = INTERVEHICLE_MESSAGE_BINARY->localhost:9301
+#endif
+
   // =======================================================
   // Usage Info below
   // =======================================================

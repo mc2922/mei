@@ -18,5 +18,9 @@ TARGET_LINK_LIBRARIES(uFldHazardMgrX
    apputil
    mbutil
    ${SYSTEM_LIBS}
+   mei_proto
+   goby_acomms
+   protobuf
+   boost_system
 )
 

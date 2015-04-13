@@ -25,8 +25,10 @@
 #define UFLD_HAZARD_MGR_HEADER
 
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
-#include "XYHazardSet.h"
-#include "XYPolygon.h"
+#include <vector>
+#include <boost/lexical_cast.hpp>
+#include "Hazard.pb.h"
+#include "goby/acomms/dccl.h"
 
 class HazardMgrX : public AppCastingMOOSApp
 {
@@ -46,16 +48,18 @@ class HazardMgrX : public AppCastingMOOSApp
  protected: // Registration, Configuration, Mail handling utils
    bool handleMailSensorConfigAck(std::string);
    bool handleMailSensorOptionsSummary(std::string) {return(true);};
-   bool handleMailDetectionReport(std::string);
-   bool handleMailHazardReport(std::string) {return(true);};
-   void handleMailReportRequest();
    void handleMailMissionParams(std::string);
 
  protected: 
    void postSensorConfigRequest();
    void postSensorInfoRequest();
-   void postHazardSetReport();
-   
+   std::string getHazardSetReport();
+   void publishSegList(std::vector<double> xin, std::vector<double> yin);
+   void segmentSpace();
+   void solveTSP();
+   double computeTSPDist(std::vector<double> xin, std::vector<double> yin);
+   void switchType();
+
  private: // Configuration variables
    double      m_swath_width_desired;
    double      m_pd_desired;
@@ -70,14 +74,32 @@ class HazardMgrX : public AppCastingMOOSApp
 
    unsigned int m_sensor_report_reqs;
    unsigned int m_detection_reports;
-
    unsigned int m_summary_reports;
 
    double m_swath_width_granted;
    double m_pd_granted;
 
-   XYHazardSet m_hazard_set;
-   XYPolygon   m_search_region;
+   std::vector<double> xset,yset;
+   std::vector<int> labelset;
+   std::vector<std::string> typeset;
+   std::vector<int> dset,cset;
+
+   int id;
+   int myeast_it,mywest_it;
+   int coopeast_it,coopwest_it;
+   double myx,myy;
+   double xmin,xmax,ymin,ymax;
+   double ym;
+   std::string type;
+   double skew_coop,skew;
+   double start_time,max_time;
+   double time_counter;
+   int cycle_counter;
+
+   goby::acomms::DCCLCodec* codec;
+   HazardList hlist;
+
+   std::string state;
 };
 
 #endif 

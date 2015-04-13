@@ -51,10 +51,8 @@ fi
 #-------------------------------------------------------
 VNAME1="jake"      # The first   vehicle community
 VNAME2="kasper"    # The second  vehicle community
-#START_POS1="450,-20"  
-#START_POS2="440,0"  
-START_POS1="-30,-20"  
-START_POS2="45,0"  
+START_POS1="140,-50"  
+START_POS2="150,-50"  
 
 # What is nsplug? Type "nsplug --help" or "nsplug --manual"
 

@@ -14,7 +14,7 @@ Processconfig = ANTLER
    
   Run = MOOSDB             @ NewConsole = false
   Run = uSimMarine         @ NewConsole = false
-  Run = pLogger            @ NewConsole = false
+  //Run = pLogger            @ NewConsole = false
   Run = pNodeReporter      @ NewConsole = false
   Run = pMarinePID         @ NewConsole = false
   Run = pHelmIvP           @ NewConsole = false
@@ -24,10 +24,30 @@ Processconfig = ANTLER
   Run = pHostInfo          @ NewConsole = false
   Run = uFldNodeBroker     @ NewConsole = false
   Run = uFldMessageHandler @ NewConsole = false
-  Run = uFldHazardMgr      @ NewConsole = false
+  //Run = uFldHazardMgrX      @ NewConsole = false
   Run = uXMS               @ NewConsole = false
 }
   
+ProcessConfig = uFldHazardMgrX
+{
+  AppTick   = 2 
+  IterateMode = 0
+
+#ifdef VNAME VNAME1
+  swath_width = 5
+  swath_width_coop = 10
+  sensor_pd   = 1
+  id = 1
+#elseifdef VNAME VNAME2
+  swath_width = 10
+  swath_width_coop = 5
+  sensor_pd   = 1
+  id = 2
+#endif
+  report_name = $(VNAME)
+  max_time = 7175
+}
+
 //------------------------------------------------------------
 Processconfig = uXMS
 {
@@ -39,7 +59,6 @@ Processconfig = uXMS
 #include plug_pShare.moos
 #include plug_pHostInfo.moos
 #include plug_uFldMessageHandler.moos
-#include plug_uFldHazardMgr.moos
 #include plug_uSimMarine.moos
 #include plug_pHelmIvP.moos
 #include plug_pMarinePID.moos
