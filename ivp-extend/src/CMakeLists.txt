@@ -27,6 +27,7 @@ ADD_SUBDIRECTORY(uFldHazardMgrX)
 ADD_SUBDIRECTORY(pHazardPath)
 
 ADD_SUBDIRECTORY(lab_05)
+ADD_SUBDIRECTORY(lab_12)
 
 IF(BUILD_SHORE_APPS)
     # optionally build shoreside only apps here
