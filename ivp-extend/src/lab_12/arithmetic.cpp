@@ -19,7 +19,6 @@ ArithmeticCodec::ArithmeticCodec()
 
 goby::acomms::Bitset ArithmeticCodec::encode_repeated(const std::vector<goby::int32>& wire_values)
 {
-
 	// PLACEHOLDER - returns bitset representing range from [0, 1)
 	double lower = 0, upper = 1;
 
@@ -27,20 +26,21 @@ goby::acomms::Bitset ArithmeticCodec::encode_repeated(const std::vector<goby::in
 
 	//Make a map of temperatures to probabilities
 	std::map<goby::int32,std::pair<double,double> > tmap;
-	tmap[10]=std::pair<double,double>(0,71/100.0);
+	tmap[10]=std::pair<double,double>(0,0.71);
 	tmap[20]=std::pair<double,double>(0.89,1.0);
-	for ( int i=0; i<9; i++) {
+	for(int i=0;i<9;i++) {
 		tmap[11+i]=std::pair<double,double>((71+2*i)/100.0,(73+2*i)/100.0);
 	}
 
 	//Update map ranges
 	for(int i=0; i<5; i++){
 		double temp_lower = lower;
-		lower = tmap[wire_values[i]].first * (upper-lower) + temp_lower;
-		upper = tmap[wire_values[i]].second * (upper-lower) + temp_lower;
+		double range = upper-lower;
+		lower = tmap[wire_values[i]].first * range + temp_lower;
+		upper = tmap[wire_values[i]].second * range + temp_lower;
 	}
-	//std::cout << "=== ARITHMETIC DEBUG: New Range: "<<lower<<", "<<upper<< std::endl;
 
+	std::cout << "=== ARITHMETIC DEBUG: New Range: "<<lower<<", "<<upper<< std::endl;
 	goby::acomms::Bitset data_bits = range_to_bits(std::make_pair(lower, upper));
 	std::cout << "=== ARITHMETIC DEBUG: \"Encoded\" using: " << data_bits << std::endl;
 	std::cout << data_bits.size() << std::endl; //Part 1a)
@@ -52,17 +52,9 @@ std::vector<goby::int32> ArithmeticCodec::decode_repeated(goby::acomms::Bitset* 
 	std::cout << "=== ARITHMETIC DEBUG: Starting with " << min_size_repeated() << " bits: " << *bits << std::endl;
 	std::vector<goby::int32> out;
 
-	//Instantiate Map and vectors
-	std::map<goby::int32,std::pair<double,double> > tmap;
+	//Instantiate vectors
 	std::vector<goby::int32> tvec; //temperature
 	std::vector<double> pvec,pvec_cpy; //probability
-
-	//Fill map
-	tmap[10]=std::pair<double,double>(0,71/100.0);
-	tmap[20]=std::pair<double,double>(0.89,1.0);
-	for(int i=0;i<9;i++) {
-		tmap[11+i]=std::pair<double,double>((71+2*i)/100.0,(73+2*i)/100.0);
-	}
 
 	//Fill vectors
 	for(int i=10;i<=20;i++) {
@@ -78,15 +70,15 @@ std::vector<goby::int32> ArithmeticCodec::decode_repeated(goby::acomms::Bitset* 
 
 	//Compute
 	for(int i=0;i<5;i++){
-		int aInd = 0, bInd = -1;
+		int aInd = -1, bInd = -2;
 		while(aInd!=bInd){
 			std::pair<double, double> result = bits_to_range(*bits);
 
 			for(int j=1;j<pvec.size();j++){
-				if(result.first <= pvec[j] && result.first >= pvec[j-1]){
+				if(result.first < pvec[j] && result.first >= pvec[j-1]){
 					aInd = j;
 				}
-				if(result.second <= pvec[j] && result.second >= pvec[j-1]){
+				if(result.second < pvec[j] && result.second >= pvec[j-1]){
 					bInd = j;
 				}
 			}
@@ -101,7 +93,7 @@ std::vector<goby::int32> ArithmeticCodec::decode_repeated(goby::acomms::Bitset* 
 
 		//Update ranges
 		double upper = pvec[aInd];
-		double lower = pvec[bInd-1];
+		double lower = pvec[aInd-1];
 		for(int j=0;j<pvec.size();j++) {
 			pvec[j] = pvec_cpy[j]*(upper-lower) + lower;
 		}
