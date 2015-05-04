@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pFrontEstimate config block
+
+ProcessConfig = pFrontEstimate
+{
+    AppTick = 5
+    IterateMode = 0 // regular iterate and mail
+}
+
