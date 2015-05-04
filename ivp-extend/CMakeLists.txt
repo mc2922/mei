@@ -13,9 +13,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 PROJECT( IVP_EXTEND )
 
-include(FindProtobuf)
-find_package(Protobuf REQUIRED)
-include_directories(${PROTOBUF_INCLUDE_DIR})
+#include(FindProtobuf)
+#find_package(Protobuf REQUIRED)
+#include_directories(${PROTOBUF_INCLUDE_DIR})
 
 SET(BUILD_SHORE_APPS TRUE CACHE BOOL "Build shore apps")
 
@@ -23,36 +23,36 @@ SET(BUILD_SHORE_APPS TRUE CACHE BOOL "Build shore apps")
 # Find the hovergroup trunk
 #=============================================================================
 
-find_path(HOVERGROUP_LIBRARIES
-            NAMES src/lib_HoverAcomms
-            PATHS ../../hover-kayak/code/libraries
-            NO_DEFAULT_PATH )
+#find_path(HOVERGROUP_LIBRARIES
+#            NAMES src/lib_HoverAcomms
+#            PATHS ../../hover-kayak/code/libraries
+#            NO_DEFAULT_PATH )
 
-FILE(GLOB HOVERGROUP_LIB_DIRECTORIES 
-       ${HOVERGROUP_LIBRARIES}/src/lib_*
-       ${HOVERGROUP_LIBRARIES}/src/protobuf)
+#FILE(GLOB HOVERGROUP_LIB_DIRECTORIES 
+#       ${HOVERGROUP_LIBRARIES}/src/lib_*
+#       ${HOVERGROUP_LIBRARIES}/src/protobuf)
 
-set ( HOVERGROUP_INCLUDE_DIRECTORIES
-        ${HOVERGROUP_LIB_DIRECTORIES}
-        ${HOVERGROUP_LIBRARIES}/src/ )
+#set ( HOVERGROUP_INCLUDE_DIRECTORIES
+#        ${HOVERGROUP_LIB_DIRECTORIES}
+#        ${HOVERGROUP_LIBRARIES}/src/ )
         
-set ( HOVERGROUP_LIBRARY_PATH
-        ${HOVERGROUP_LIBRARIES}/lib/ )
+#set ( HOVERGROUP_LIBRARY_PATH
+#        ${HOVERGROUP_LIBRARIES}/lib/ )
 
 #=============================================================================
 # Find the "goby" base directory
 #=============================================================================
 
-find_path( GOBY_BASE
-             NAMES DEPENDENCIES build.sh AUTHORS
-            PATHS "~/goby" "../../goby"
-             NO_DEFAULT_PATH )
+#find_path( GOBY_BASE
+#             NAMES DEPENDENCIES build.sh AUTHORS
+#            PATHS "~/goby" "../../goby"
+#             NO_DEFAULT_PATH )
 
-set( GOBY_INCLUDE_DIRS
-       ${GOBY_BASE}/include )
+#set( GOBY_INCLUDE_DIRS
+#       ${GOBY_BASE}/include )
     
-set( GOBY_LIBRARY_PATH
-       ${GOBY_BASE}/lib )
+#set( GOBY_LIBRARY_PATH
+#       ${GOBY_BASE}/lib )
 
 #=============================================================================
 # Find the "moos-ivp" base directory
