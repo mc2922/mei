@@ -1,13 +1,5 @@
-#ifdef KESTREL
-    #include ../resources/config/kestrel.def
-    #include ../resources/config/kestrel_options.def
-#elseifdef SILVANA
-    #include ../resources/config/silvana.def
-    #include ../resources/config/silvana_options.def
-#elseifdef NOSTROMO
-    #include ../resources/config/nostromo.def
-    #include ../resources/config/nostromo_options.def
-#endif
+
+
 
 initialize   MISSION_MODE = INACTIVE     // INACTIVE, GOTO, STATION-KEEP, RETURN
 initialize   MOOS_MANUAL_OVERRIDE=true   // true, false
@@ -27,10 +19,10 @@ Behavior = BHV_Waypoint
     lead          = 15
     lead_to_start = true
     lead_damper   = 1
-    speed         = $(CRUISESPEED)
+    speed         = 1
     radius        = 4.0
     slip_radius   = 10.0
-    points        = $(RETURN_PT)
+    points        = -50,-50
 }
 
 Behavior = BHV_Waypoint
@@ -46,10 +38,10 @@ Behavior = BHV_Waypoint
     lead          = 15
     lead_to_start = true
     lead_damper   = 1
-    speed         = $(CRUISESPEED)
+    speed         = 1
     radius        = 4.0
     slip_radius   = 10.0
-    points        = $(RETURN_PT)
+    points        = -50,-50
 }
 
 Behavior = BHV_Waypoint
@@ -63,10 +55,10 @@ Behavior = BHV_Waypoint
     lead          = 15
     lead_to_start = true
     lead_damper   = 1
-    speed         = $(CRUISESPEED)
+    speed         = 1
     radius        = 2.0
     nm_radius     = 8.0
-    points        = $(RETURN_PT)
+    points        = -50,-50
 }
 
 Behavior = BHV_StationKeep
@@ -79,8 +71,8 @@ Behavior = BHV_StationKeep
     station_pt    = 0,0
     inner_radius  = 5
     outer_radius  = 10
-    outer_speed   = $(CRUISESPEED)
-    transit_speed = $(CRUISESPEED)
+    outer_speed   = 1
+    transit_speed = 1
     swing_time    = 3
 }
 
@@ -92,7 +84,7 @@ Behavior = BHV_ConstantSpeed
 
     duration = no-time-limit
 
-    speed = $(CRUISESPEED)
+    speed = 1
 }
 
 Behavior = BHV_ConstantHeading
@@ -121,3 +113,4 @@ Behavior = BHV_OpRegion
   trigger_exit_time  = 1
         visual_hints = edge_size=1, vertex_size=2
 }
+

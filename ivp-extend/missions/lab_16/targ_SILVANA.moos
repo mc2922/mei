@@ -1,0 +1,236 @@
+
+
+
+
+
+
+
+
+
+ServerHost = localhost
+ServerPort = 9400
+Community  = SILVANA
+
+// MIT Sailing Pavilion
+LatOrigin  =  42.358456        
+LongOrigin = -71.087589    
+
+  
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 200
+   
+  Run = MOOSDB                 @ NewConsole = false
+  Run = pShare                 @ NewConsole = false
+  Run = uSimMarine             @ NewConsole = false
+  Run = pLogger                @ NewConsole = false
+  Run = pProtoReporter         @ NewConsole = false
+  Run = pMarinePID_Hover       @ NewConsole = false
+  Run = pHelmIvP               @ NewConsole = false
+  Run = pEchoVar               @ NewConsole = false
+  Run = iAcommsDriver          @ NewConsole = false
+  Run = pResourceMon           @ NewConsole = false
+  Run = pAckedCommsVehicle     @ NewConsole = false
+  Run = pScheduledTransmit     @ NewConsole = false
+
+  Run = pFrontEstimate         @ NewConsole = false
+}
+
+Processconfig = pFrontEstimate
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 10
+
+    vname = SILVANA
+
+    id = 1
+
+    min_offset = -120
+    max_offset = -60
+    min_angle = -5
+    max_angle = 15
+    min_amplitude = 0
+    max_amplitude = 50
+    min_period = 200
+    max_period = 600
+    min_wavelength = 100
+    max_wavelength = 500
+    min_beta = 10
+    max_beta = 50
+    min_T_N = 15
+    max_T_N = 25 
+    min_T_S = 20
+    max_T_S = 30 
+}
+
+ProcessConfig = iKST
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 4
+
+    output_path = "/home/josh/kst_SILVANA.csv"
+
+    LOG = NAV_X
+    LOG = NAV_Y
+    LOG = NAV_HEADING
+    LOG = NAV_SPEED
+    LOG = DESIRED_HEADING
+    LOG = DESIRED_SPEED
+    LOG = ARDUINO_RUDDER
+    LOG = ARDUINO_THRUST
+    LOG = COMPASS_ROLL
+    LOG = COMPASS_PITCH
+    LOG = ALTIMETER_DEPTH
+}
+
+ProcessConfig = uSimMarine
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 10
+
+    START_POS = 150,-10, 180, 0
+    PREFIX    = NAV
+}
+
+ProcessConfig = pShare
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 4
+  
+    output = PROTO_REPORT_LOCAL->PROTO_REPORT:localhost:9001
+    output = VIEW_RANGE_PULSE->localhost:9001
+    output = ACKEDCOMMS_RETURN_ACK->localhost:9001
+  
+    input = route=localhost:9401 
+}
+
+ProcessConfig = pLogger
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 10
+
+    File            = LOG_SILVANA
+    PATH            = /home/mit/logs/
+    AsyncLog        = true
+    FileTimeStamp   = true
+    WildCardLogging = true
+
+    WildCardOmitPattern = PLOGGER_STATUS, DB_VARSUMMARY
+}
+
+ProcessConfig = pProtoReporter
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 1
+  
+    PLATFORM_TYPE = KAYAK
+}
+
+ProcessConfig = pMarinePID_Hover
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 10
+
+    Verbose       = false
+    DEPTH_CONTROL = false
+    ACTIVE_START  = true
+    MAXRUDDER     = 45
+    MAXTHRUST     = 100
+
+    // SPEED_FACTOR
+    //    - A non-zero SPEED_FACTOR overrides use of SPEED_PID
+    //    - Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+    SPEED_FACTOR  = 30
+    // 25-30 for no modem
+    // 40 with modem
+
+    // Yaw PID controller
+    YAW_PID_KP             = 0.45
+    YAW_PID_KD             = 0.3
+    YAW_PID_KI             = 0.01
+    YAW_PID_INTEGRAL_LIMIT = 500
+    YAW_PID_TAU            = 1
+
+    // Speed PID controller
+    SPEED_PID_KP             = 0.0
+    SPEED_PID_KD             = 0.0
+    SPEED_PID_KI             = 4
+    SPEED_PID_INTEGRAL_LIMIT = 2.5
+    
+    SPEED_CONTROLLER = fit_pid
+    // factor, pid, fit_pid
+    
+    SPEED_SLOPE = 60.6
+    SPEED_OFFSET = -1.21
+    ANGLE_LIMIT = 25
+    TIME_DELAY = 5
+}
+
+ProcessConfig = pHelmIvP
+{
+    AppTick     = 2
+
+    ok_skew = any
+  
+    Behaviors = targ_SILVANA.bhv  
+    Verbose   = true
+    Domain    = course:0:359:360
+    Domain    = speed:0:3:61
+  
+    IVP_BEHAVIOR_DIR = /home/josh/hovergroup/ivp-extend/trunk/lib/
+    IVP_BEHAVIOR_DIR = /home/josh/hovergroup-extend/trunk/lib/
+    BHV_DIR_NOT_FOUND_OK = true
+}
+
+ProcessConfig = pEchoVar
+{
+    IterateMode = 1    // comms driven iterate and mail
+    AppTick     = 4    // iterate lower bound
+    MaxAppTick  = 0    // no limit
+
+    Echo = MOOS_MANUAL_OVERRIDE -> MOOS_MANUAL_OVERIDE
+}
+
+ProcessConfig = pResourceMon
+{
+    IterateMode = 0 // regular iterate and mail
+    AppTick = 1
+}
+
+ProcessConfig = pAckedCommsVehicle
+{
+    IterateMode = 1    // comms driven iterate and mail
+    AppTick     = 1    // iterate lower bound
+    MaxAppTick  = 0    // no limit
+}
+
+ProcessConfig = pScheduledTransmit
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 20
+   
+    period = 40
+    offset = 20
+}
+
+ProcessConfig = iAcommsDriver
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 5
+
+    PortName = /dev/ttyUSB0
+    ID       = 4
+
+    PSK_minipackets   = false
+    enable_ranging    = true
+    show_range_pulses = true
+
+    in_sim = true
+    sim_server = localhost
+    sim_port = 9000
+
+    nav_prefix = NAV
+}
+
+

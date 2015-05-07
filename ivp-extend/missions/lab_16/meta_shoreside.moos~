@@ -13,7 +13,7 @@ MOOSTimeWarp = 5
 //--------------------------------------------------------
 Processconfig = ANTLER
 {
-  MSBetweenLaunches = 200
+  MSBetweenLaunches = 1000
 
   Run = MOOSDB               @ NewConsole = false
   Run = pShare               @ NewConsole = false

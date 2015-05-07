@@ -6,11 +6,9 @@ ProcessConfig = pFrontEstimate
   vname = $(VNAME)
 
 #ifdef $(VNAME) = SILVANA
-  id = 1
 #endif
 
 #ifdef $(VNAME) = KESTREL
-  id = 2
 #endif
 
   temperature_factor = $(COOL_FAC)
