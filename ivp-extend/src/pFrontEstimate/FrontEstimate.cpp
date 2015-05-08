@@ -199,6 +199,7 @@ bool FrontEstimate::Iterate()
 				if(!state_initialized){
 					tSent = MOOSTime();
 					state_initialized = true;
+					state_transit = true;
 				}
 				else{
 					if(MOOSTime()-tSent>10){
@@ -231,6 +232,13 @@ bool FrontEstimate::Iterate()
 						else{
 							cout << "Driver was not ready!" << endl;
 						}
+					}
+					if(!state_transit){
+						if(navx>115)
+							bhvLawnmower("west",-50,170,-190,-40);
+						else
+							bhvLawnmower("east",-50,170,-190,-40);
+						state_transit=true;
 					}
 				}
 				break;
@@ -291,6 +299,7 @@ bool FrontEstimate::Iterate()
 
 					if(!state_transit){
 						bhvZigzag("west",navx,-50,navy,-45);
+						state_transit=true;
 					}
 				}
 				break;
@@ -300,8 +309,38 @@ bool FrontEstimate::Iterate()
 	return true;
 }
 
-void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax){
+void FrontEstimate::bhvLawnmower(string dir, double xmin, double xmax, double ymin, double ymax){
+	vector<double> xvec,yvec;
+		int cycles = 10;
+		double xspan = (xmax-xmin)/cycles;
+		if(dir=="east"){
+			xvec.push_back(xmax);
+			yvec.push_back(ymax);
+			for(int i=0;i<cycles;i++){
+				xvec.push_back(xmin+i*(xspan));
+				xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
+				xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
+				yvec.push_back(ymin);
+				yvec.push_back(ymin);
+				yvec.push_back(ymax);
+			}
+		}
+		else if(dir=="west"){
+			xvec.push_back(xmin);
+			yvec.push_back(ymax);
+			for(int i=1;i<cycles;i++){
+				xvec.push_back(xmax-i*(xspan));
+				xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
+				xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
+				yvec.push_back(ymin);
+				yvec.push_back(ymin);
+				yvec.push_back(ymax);
+			}
+		}
+		publishSegList(xvec,yvec);
+}
 
+void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax){
 	vector<double> xvec,yvec;
 	int cycles = 5;
 	double xspan = (xmax-xmin)/cycles;
@@ -319,7 +358,7 @@ void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin,
 		xvec.push_back(xmax);
 		yvec.push_back(ymin);
 		for(int i=1;i<cycles;i++){
-			xvec.push_back(xmax-i*(xspan/2));
+			xvec.push_back(xmax-(i-0.5)*(xspan/2));
 			xvec.push_back(xmax-i*(xspan));
 			yvec.push_back(ymax);
 			yvec.push_back(ymin);

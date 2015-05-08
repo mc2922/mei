@@ -40,6 +40,7 @@ protected:
 
 	//behaviors
 	void bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax);
+	void bhvLawnmower(string dir, double xmin, double xmax, double ymin, double ymax);
 	void publishWaypoint(double xin, double yin);
 	void publishSegList(vector<double> xin, vector<double> yin);
 
