@@ -16,6 +16,11 @@ using namespace std;
 
 FrontEstimate::FrontEstimate()
 {
+
+	anneal.clearMeas();
+	cooling_steps = 100;
+	anneal_step = 0;
+
 	min_offset = -200;
 	max_offset = 0;
 	min_angle = -10;
@@ -32,8 +37,8 @@ FrontEstimate::FrontEstimate()
 	max_T_N = 25;
 	min_T_S = 20;
 	max_T_S = 30;
-
-	alpha = 500;
+	min_alpha = 500;
+	max_alpha = 500;
 
 	id = 1;
 	start = "false";
@@ -44,6 +49,22 @@ FrontEstimate::FrontEstimate()
 	state_initialized = false;
 	state_transit = true;
 	heard_acomms = false;
+	annealer_initialized = false;
+	driver_ready = false;
+	mlist.set_count(0);
+
+	codec = goby::acomms::DCCLCodec::get();
+	try {
+		codec->validate<Measurement>();
+	} catch (goby::acomms::DCCLException& e) {
+		std::cout << "failed to validate hazard" << std::endl;
+	}
+
+	try {
+		codec->validate<MeasurementList>();
+	} catch (goby::acomms::DCCLException& e) {
+		std::cout << "failed to validate list" << std::endl;
+	}
 }
 
 //---------------------------------------------------------
@@ -72,15 +93,59 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 		}
 		else if (key == "FRONT_ESTIMATE_START") {
 			start = msg.GetString();
+			if(id==1){
+				utc_time_offset = MOOSTime();
+				m_Comms.Notify("UTC_TIME_OFFSET",utc_time_offset);
+				unhandled_reports.clear();
+			}
 		}
 		else if(key == "UCTD_SENSOR_REPORT"){
-			unhandled_reports.push_back(parseSensor(msg.GetString()));
+			string meas = msg.GetString();
+			MOOSChomp(meas,"vname=");
+			if(MOOSChomp(meas,",")==vname){
+				if(state==s_annealing&&annealer_initialized){
+					anneal.addMeas(anneal.parseMeas(msg.GetString()));
+				}
+				else
+					unhandled_reports.push_back(parseSensor(msg.GetString()));
+			}
 		}
+
 		else if(key == "GOTO_END"){
 			state_transit = false;
 		}
 		else if(key == "ACOMMS_RECEIVED_DATA"){
-			parseAcomms(msg.GetString());
+			if(state==s_annealing&&annealer_initialized){
+				mlist.Clear();
+				codec->decode(msg.GetString(),&mlist);
+				cout << "Received " << mlist.count() << " points from K" << endl;
+				double count = mlist.count();
+				for(int i=0;i<count;i++){
+					stringstream measIn;
+					Measurement meas = mlist.mlist(i);
+					measIn << "utc=" << meas.t()<<",";
+					measIn << "x=" << meas.x()<<",";
+					measIn << "y=" << meas.y()<<",";
+					measIn << "temp=" << meas.temp();
+					anneal.addMeas(anneal.parseMeas(measIn.str()));
+				}
+			}
+			else{
+				parseAcomms(msg.GetString());
+			}
+		}
+		else if(key == "ACOMMS_DRIVER_STATUS"){
+			if(msg.GetDouble()==HoverAcomms::READY){
+				driver_ready = true;
+			}
+			else{
+				driver_ready = false;
+			}
+		}
+		else if(key=="UTC_TIME_OFFSET"){
+			cout << "Initialized utc offset" << endl;
+			utc_time_offset = msg.GetDouble();
+			unhandled_reports.clear();
 		}
 	}
 
@@ -97,11 +162,12 @@ bool FrontEstimate::Iterate()
 
 			case s_initial_scan: //Travel North
 				if(!state_initialized){
-					publishWaypoint(160,10);
+					publishWaypoint(160,navy);
 					state_transit = true;
 					state_initialized = true;
 				}
 				else if(!state_transit){
+					cout << "Heard: " << unhandled_reports.size() << " reports" << endl;
 					T_N = simpleAverage(unhandled_reports);
 					unhandled_reports.clear();
 					tellMe("T_N",T_N);
@@ -118,8 +184,10 @@ bool FrontEstimate::Iterate()
 
 			case s_acomms_ack: //Ack first for ID1
 				if(heard_acomms){
-					state = s_acomms_listening;
+					state = s_acomms_periodic;
+					state_initialized = false;
 					heard_acomms = false;
+					unhandled_reports.clear();
 				}
 				else if(MOOSTime()-tSent>timeout){
 					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
@@ -127,32 +195,46 @@ bool FrontEstimate::Iterate()
 				}
 				break;
 
-			case s_acomms_listening: //Reply with ack for Id 1
-				if(heard_acomms){
-					heard_acomms = false;
-					m_Comms.Notify("ACOMMS_TRANSMIT_DATA","varname=ack");
-					state = s_estimate_offset;
-				}
-				break;
-
-			case s_estimate_offset:
+			case s_acomms_periodic: //Periodic sensor reports
 				if(!state_initialized){
-					publishWaypoint(160,10);
-					state_transit = true;
-					cout << "Offset Estimate" << endl;
+					tSent = MOOSTime();
 					state_initialized = true;
 				}
-				else if(!state_transit){
-					east_offset = -200 - simpleMidpoint(unhandled_reports);
-					unhandled_reports.clear();
-					tellMe("east_offset",east_offset);
-
-					angle = atan2((east_offset-offset),100);
-					tellMe("angle",angle);
-					latest_acomms = serializeParameter("angle",angle);
-					state = s_acomms_ack;
+				else{
+					if(MOOSTime()-tSent>10){
+						if(driver_ready){
+							cout << "Compiling message" << endl;
+							while(!unhandled_reports.empty()){
+								Measurement meas = unhandled_reports.back();
+								mlist.add_mlist()->CopyFrom(meas);
+								double count = mlist.count()+1;
+								mlist.set_count(count);
+								if(count==28){
+									unhandled_reports.clear();
+								}
+								else{
+									unhandled_reports.pop_back();
+									double excess = unhandled_reports.size()+count-28;
+									if(excess>0){ //discarding every other report
+										unhandled_reports.pop_back();
+									}
+								}
+							}
+							cout << "Sending: " << mlist.count() << " measurements" << endl;
+							string bytes;
+							codec->encode(&bytes,mlist);
+							m_Comms.Notify("ACOMMS_TRANSMIT_DATA_BINARY",(void *) bytes.data(), bytes.size());
+							mlist.Clear();
+							mlist.set_count(0);
+							tSent = MOOSTime();
+						}
+						else{
+							cout << "Driver was not ready!" << endl;
+						}
+					}
 				}
 				break;
+
 			}
 		}
 
@@ -161,55 +243,127 @@ bool FrontEstimate::Iterate()
 
 			case s_initial_scan: //Estimate offset
 				if(!state_initialized){
-					publishWaypoint(navx,-180);
+					publishWaypoint(-50,navy);
 					state_transit = true;
 					state_initialized = true;
 					unhandled_reports.clear();
 				}
 				else if(!state_transit){
-					offset = simpleMidpoint(unhandled_reports);
-					unhandled_reports.clear();
-					tellMe("offset",offset);
-					latest_acomms = serializeParameter("offset",offset);
-
-					state = s_acomms_listening;
-				}
-				break;
-
-			case s_acomms_listening: //LIsten first for ID 2
-				if(heard_acomms){
-					heard_acomms = false;
-					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
-					state = s_acomms_ack;
-				}
-				break;
-
-			case s_acomms_ack: //End ack chain for ID 2
-				if(heard_acomms){
-					heard_acomms = false;
-					state = s_estimate_T_S;
-				}
-				break;
-
-			case s_estimate_T_S:
-				if(!state_initialized){
-					publishWaypoint(-45,navy);
-					state_transit = true;
-					state_initialized = true;
-					unhandled_reports.clear();
-				}
-				else if(!state_transit){
+					cout << "Heard: " << unhandled_reports.size() << " reports" << endl;
 					T_S = simpleAverage(unhandled_reports);
 					unhandled_reports.clear();
 					tellMe("T_S",T_S);
+					latest_acomms = serializeParameter("T_S",T_S);
 
 					state = s_acomms_listening;
+				}
+				break;
+
+			case s_acomms_listening: //Listen first for ID 2
+				if(heard_acomms){
+					heard_acomms = false;
+					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
+					state = s_annealing;
+					state_initialized = false;
+				}
+				break;
+
+			case s_annealing:
+				if(!state_initialized){
+
+					initializeAnnealer();
+					cout << "Annealer Initialized" << endl;
+
+					bhvZigzag("east",navx,170,navy,-45);
+					state_transit = true;
+					state_initialized = true;
+					unhandled_reports.clear();
+					tSent = MOOSTime();
+				}
+				else{
+					double temperature = exp(-2*double(anneal_step)/double(cooling_steps));
+					double energy = anneal.heatBath(temperature);
+
+					if((MOOSTime()-tSent)>30){
+						postParameterReport();
+						tSent = MOOSTime();
+					}
+
+					if(!state_transit){
+						bhvZigzag("west",navx,-50,navy,-45);
+					}
 				}
 				break;
 			}
 		}
 	}
 	return true;
+}
+
+void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax){
+
+	vector<double> xvec,yvec;
+	int cycles = 5;
+	double xspan = (xmax-xmin)/cycles;
+	if(dir=="east"){
+		xvec.push_back(xmin);
+		yvec.push_back(ymin);
+		for(int i=1;i<cycles;i++){
+			xvec.push_back(xmin+(i-0.5)*(xspan));
+			xvec.push_back(xmin+i*(xspan));
+			yvec.push_back(ymax);
+			yvec.push_back(ymin);
+		}
+	}
+	else if(dir=="west"){
+		xvec.push_back(xmax);
+		yvec.push_back(ymin);
+		for(int i=1;i<cycles;i++){
+			xvec.push_back(xmax-i*(xspan/2));
+			xvec.push_back(xmax-i*(xspan));
+			yvec.push_back(ymax);
+			yvec.push_back(ymin);
+		}
+	}
+	publishSegList(xvec,yvec);
+}
+
+void FrontEstimate::initializeAnnealer(){
+	anneal.setVars(9, 1, true);
+	vector<double> vars;
+	vars.push_back(min_offset);
+	vars.push_back(min_angle);
+	vars.push_back(min_amplitude);
+	vars.push_back(min_period);
+	vars.push_back(min_wavelength);
+	vars.push_back(min_alpha);
+	vars.push_back(min_beta);
+	vars.push_back(min_T_N);
+	vars.push_back(min_T_S);
+	anneal.setMinVal(vars);
+	vars.clear();
+	vars.push_back(max_offset);
+	vars.push_back(max_angle);
+	vars.push_back(max_amplitude);
+	vars.push_back(max_period);
+	vars.push_back(max_wavelength);
+	vars.push_back(max_alpha);
+	vars.push_back(max_beta);
+	vars.push_back(max_T_N);
+	vars.push_back(max_T_S);
+	anneal.setMaxVal(vars);
+	vars.clear();
+	vars.push_back(0.5*(max_offset+min_offset));
+	vars.push_back(0.5*(max_angle+min_angle));
+	vars.push_back(0.5*(max_amplitude+min_amplitude));
+	vars.push_back(0.5*(max_period+min_period));
+	vars.push_back(0.5*(max_wavelength+min_period));
+	vars.push_back(0.5*(max_alpha+min_alpha));
+	vars.push_back(0.5*(max_beta+min_beta));
+	vars.push_back(0.5*(max_T_N+min_T_N));
+	vars.push_back(0.5*(max_T_S+min_T_S));
+	anneal.setInitVal(vars);
+	annealer_initialized = true;
 }
 
 void FrontEstimate::parseAcomms(string msgIn){
@@ -222,13 +376,14 @@ void FrontEstimate::parseAcomms(string msgIn){
 	cout << "Heard: " << varname << " set to " << param << endl;
 
 	if(varname=="T_N"){	// ID 1->2
+		min_T_N = param;
+		max_T_N = param;
 		T_N = param;
 	}
 	else if(varname == "T_S"){
+		min_T_S = param;
+		max_T_S = param;
 		T_S = param;
-	}
-	else if(varname == "offset"){
-		offset = param;
 	}
 	heard_acomms = true;
 }
@@ -239,31 +394,11 @@ string FrontEstimate::serializeParameter(string name, double parameter){
 	return msgOut.str();
 }
 
-double FrontEstimate::simpleMidpoint(vector<report> reportsIn){
-	double ymax,ymin;
-	ymax = 20;
-	ymin = -200;
-	for(int i=0;i<reportsIn.size();i++){
-		report myreport = reportsIn[i];
-		if(abs(myreport.temp-T_N)<0.1){
-			if(myreport.y < ymax){
-				ymax = myreport.y;
-			}
-		}
-		if(abs(myreport.temp-T_S)<0.1){
-			if(myreport.y > ymin){
-				ymin = myreport.y;
-			}
-		}
-	}
-	return (ymax-ymin)/2;
-}
-
-double FrontEstimate::simpleAverage(vector<report> reportsIn){
+double FrontEstimate::simpleAverage(vector<Measurement> reportsIn){
 	double average = 0;
 	for(int i=0;i<reportsIn.size();i++){
-		report tempreport = reportsIn[i];
-		average = average+tempreport.temp;
+		Measurement tempreport = reportsIn[i];
+		average = average+tempreport.temp();
 	}
 	average = average/reportsIn.size();
 	return average;
@@ -324,14 +459,16 @@ void FrontEstimate::requestSensor(){
 	m_Comms.Notify("UCTD_SENSOR_REQUEST",msgOut);
 }
 
-FrontEstimate::report FrontEstimate::parseSensor(string msgIn){
-	report reportOut;
+Measurement FrontEstimate::parseSensor(string msgIn){
+	Measurement reportOut;
+	MOOSChomp(msgIn,"utc=");
+	reportOut.set_t(boost::lexical_cast<double>(MOOSChomp(msgIn,","))-utc_time_offset);
 	MOOSChomp(msgIn,"x=");
-	reportOut.x = boost::lexical_cast<double>(MOOSChomp(msgIn,","));
+	reportOut.set_x(boost::lexical_cast<double>(MOOSChomp(msgIn,",")));
 	MOOSChomp(msgIn,"y=");
-	reportOut.y = boost::lexical_cast<double>(MOOSChomp(msgIn,","));
+	reportOut.set_y(boost::lexical_cast<double>(MOOSChomp(msgIn,",")));
 	MOOSChomp(msgIn,"temp=");
-	reportOut.temp = boost::lexical_cast<double>(MOOSChomp(msgIn,","));
+	reportOut.set_temp(boost::lexical_cast<double>(MOOSChomp(msgIn,",")));
 
 	return reportOut;
 }
@@ -353,10 +490,43 @@ void FrontEstimate::tellMe(string varname, double param){
 	}
 }
 
+void FrontEstimate::postParameterReport()
+{
+	vector<double> result;
+	anneal.getEstimate(result);
+	offset =     result[0];
+	angle  =     result[1];
+	amplitude =  result[2];
+	period =     result[3];
+	wavelength = result[4];
+	alpha =      result[5];
+	beta =       result[6];
+	T_N  =       result[7];
+	T_S  =       result[8];
+
+	string sval;
+	sval = "vname=" + vname;
+	sval += ",offset=" + doubleToString(offset);
+	sval += ",angle=" + doubleToString(angle);
+	sval += ",amplitude=" + doubleToString(amplitude);
+	sval += ",period=" + doubleToString(period);
+	sval += ",wavelength=" + doubleToString(wavelength);
+	sval += ",alpha=" + doubleToString(alpha);
+	sval += ",beta=" + doubleToString(beta);
+	sval += ",tempnorth=" + doubleToString(T_N);
+	sval += ",tempsouth=" + doubleToString(T_S);
+
+	cout << sval << endl;
+
+	m_Comms.Notify("UCTD_PARAMETER_ESTIMATE", sval);
+}
+
 bool FrontEstimate::OnStartUp()
 {
 	m_MissionReader.GetConfigurationParam("id", id);
 	m_MissionReader.GetConfigurationParam("vname", vname);
+
+	m_MissionReader.GetConfigurationParam("cooling_steps", cooling_steps);
 
 	//Front estimate parameters
 	m_MissionReader.GetConfigurationParam("min_offset", min_offset);
@@ -375,6 +545,16 @@ bool FrontEstimate::OnStartUp()
 	m_MissionReader.GetConfigurationParam("max_T_N", max_T_N);
 	m_MissionReader.GetConfigurationParam("min_T_S", min_T_S);
 	m_MissionReader.GetConfigurationParam("max_T_S", max_T_S);
+	m_MissionReader.GetConfigurationParam("min_alpha", min_alpha);
+	m_MissionReader.GetConfigurationParam("max_alpha", max_alpha);
+
+	if(id==1){
+	}
+	else if(id==2){
+		m_Comms.Register("UTC_TIME_OFFSET",0);
+	}
+
+	m_Comms.Notify("ACOMMS_TRANSMIT_RATE",1);
 
 	return true;
 }
@@ -387,5 +567,6 @@ bool FrontEstimate::OnConnectToServer()
 	m_Comms.Register("GOTO_END",0);
 	m_Comms.Register("ACOMMS_RECEIVED_DATA",0);
 	m_Comms.Register("UCTD_SENSOR_REPORT",0);
+	m_Comms.Register("ACOMMS_DRIVER_STATUS",0);
 	return true;
 }

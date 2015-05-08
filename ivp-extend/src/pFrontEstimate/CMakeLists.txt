@@ -21,5 +21,10 @@ TARGET_LINK_LIBRARIES(pFrontEstimate
     mbutil
     ${MOOS_LIBRARIES}
     ${MOOS_DEPEND_LIBRARIES}
+	henrik_util
+	HoverAcomms
+	boost_system
+	mei_proto
+   	goby_acomms	
     )
 

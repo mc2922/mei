@@ -8,9 +8,13 @@ ProcessConfig = pShare
     output = ACKEDCOMMS_RETURN_ACK->$(SHOREHOST):$(SLPORT)
   
     output = UCTD_SENSOR_REQUEST->$(SHOREHOST):$(SLPORT)
+    
+#ifdef $(VNAME) SILVANA
+    id = 2
+    #endif
 
      #ifdef $(VNAME) KESTREL
-    output = UTC_TIME_OFFSET->192.168.1.104:9401
+    id = 1
     #endif
 
     input = route=$(VHOST):$(LPORT) 

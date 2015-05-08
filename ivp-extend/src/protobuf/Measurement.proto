@@ -1,0 +1,35 @@
+/*
+ * hovergroup_proto
+ *        File: Hazard.proto
+ *  Created on: April 12, 2015
+ *      Author: Mei Cheung
+ */
+
+import "goby/acomms/protobuf/dccl_option_extensions.proto";
+
+message Measurement
+{
+  option (dccl.msg).id = 126;
+  option (dccl.msg).max_bytes = 192;
+  required double x = 1 [(dccl.field).min=-100,
+                                 (dccl.field).max=180,
+                                 (dccl.field).precision=1];
+  required double y = 2 [(dccl.field).min=-200,
+                                 (dccl.field).max=20,
+                                 (dccl.field).precision=1];
+  required double temp = 3 [(dccl.field).min=15,
+                                 (dccl.field).max=30,
+                                 (dccl.field).precision=2];
+  required double t = 4 [(dccl.field).min=0,
+                                 (dccl.field).max=4000,
+                                 (dccl.field).precision=1];
+}
+
+message MeasurementList
+{ 
+  option (dccl.msg).id = 127;
+  option (dccl.msg).max_bytes = 192;
+  required int32 count = 1 [(dccl.field).min=0,
+                          (dccl.field).max=100];
+  repeated Measurement mlist = 2 [ (dccl.field).max_repeat=28];
+}

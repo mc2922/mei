@@ -2,5 +2,5 @@
 #define ACOMMSID 4
 #define TransmitOffset 20
 #define TransmitPeriod 40
-#define RETURN_PT 150,0
+#define RETURN_PT 150,-10
 #define CRUISESPEED 1

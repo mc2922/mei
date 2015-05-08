@@ -3,8 +3,8 @@
 
 ProcessConfig = uFldCTDSensor
 {
-  AppTick   = 3
-  CommsTick = 3
+  AppTick   = 20
+  CommsTick = 20
 
    // Configuring Artificial Noise                               
   xmin  = 0       
@@ -17,7 +17,7 @@ ProcessConfig = uFldCTDSensor
   amplitude = 20
   period = 200
   wavelength = 200
-  alpha = 400
+  alpha = 500
   beta = 20
   temperature_north = 20
   temperature_south = 25

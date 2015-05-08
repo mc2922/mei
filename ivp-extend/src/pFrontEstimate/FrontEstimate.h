@@ -10,6 +10,11 @@
 
 #include "MOOS/libMOOS/MOOSLib.h"
 #include <boost/lexical_cast.hpp>
+#include <../lib_henrik_util/CSimAnneal.h>
+#include <../lib_henrik_util/CFrontSim.h>
+#include "Measurement.pb.h"
+#include "goby/acomms/dccl.h"
+#include "HoverAcomms.h"
 
 using namespace std;
 
@@ -25,32 +30,35 @@ protected:
 	bool OnConnectToServer();
 	bool OnStartUp();
 
-	struct report {
-		double x;
-		double y;
-		double temp;
-	};
+	CSimAnneal anneal;
 
+	//utility
 	void requestSensor();
+	double simpleAverage(vector<Measurement> reportsIn);
+	void postParameterReport();
+	void initializeAnnealer();
+
+	//behaviors
+	void bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax);
 	void publishWaypoint(double xin, double yin);
 	void publishSegList(vector<double> xin, vector<double> yin);
 
+	//parsers
 	string serializeParameter(string name, double parameter);
-	report parseSensor(string msgIn);
+	Measurement parseSensor(string msgIn);
 	void parseAcomms(string msgIn);
 	void tellMe(string varname, double parameter);
 
-	double simpleAverage(vector<report> reportsIn);
-	double simpleMidpoint(vector<report> reportsIn);
 
 private:
 	enum STATE {
 		s_initial_scan = 0,
 		s_estimate_T_S,
-		s_estimate_offset,
 		s_estimate_angle,
 		s_acomms_ack,
-		s_acomms_listening
+		s_acomms_listening,
+		s_acomms_periodic,
+		s_annealing
 	};
 	STATE state;
 
@@ -59,12 +67,20 @@ private:
 	double tSent, timeout;
 	string vname;
 	string start;
-	vector<report> unhandled_reports;
-	vector<report> current_reports;
-	vector<report> saved_reports;
+	vector<Measurement> unhandled_reports;
 	string latest_acomms;
 	bool state_initialized, state_transit;
 	bool heard_acomms;
+	bool driver_ready;
+	double utc_time_offset;
+
+	goby::acomms::DCCLCodec* codec;
+	MeasurementList mlist;
+
+	//Annealer parameters
+	int cooling_steps;
+	int anneal_step;
+	bool annealer_initialized;
 
 	// Front parameters
 	double offset;

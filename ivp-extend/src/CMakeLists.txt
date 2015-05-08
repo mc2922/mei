@@ -10,7 +10,8 @@
 #============================================================================
 FILE(GLOB LOCAL_LIBRARY_DIRS ./lib_*)
 INCLUDE_DIRECTORIES(${LOCAL_LIBRARY_DIRS}
-                    "./protobuf")
+                    "./protobuf"
+                    "./lib_henrik_util")
 
 #============================================================================
 # List the subdirectories to build...
@@ -26,6 +27,7 @@ ADD_SUBDIRECTORY(pGenPath)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
 ADD_SUBDIRECTORY(pHazardPath)
 ADD_SUBDIRECTORY(pFrontEstimate)
+ADD_SUBDIRECTORY(lib_henrik_util)
 
 ADD_SUBDIRECTORY(lab_05)
 ADD_SUBDIRECTORY(lab_12)
