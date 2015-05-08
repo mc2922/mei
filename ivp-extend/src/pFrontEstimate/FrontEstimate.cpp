@@ -92,11 +92,13 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 			navy = msg.GetDouble();
 		}
 		else if (key == "FRONT_ESTIMATE_START") {
-			start = msg.GetString();
-			if(id==1){
-				utc_time_offset = MOOSTime();
-				m_Comms.Notify("UTC_TIME_OFFSET",utc_time_offset);
-				unhandled_reports.clear();
+			if(MOOSTime()-msg.GetTime()<=5){
+				start = msg.GetString();
+				if(id==1){
+					utc_time_offset = MOOSTime();
+					m_Comms.Notify("UTC_TIME_OFFSET",utc_time_offset);
+					unhandled_reports.clear();
+				}
 			}
 		}
 		else if(key == "UCTD_SENSOR_REPORT"){
@@ -112,26 +114,33 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 		}
 
 		else if(key == "GOTO_END"){
-			state_transit = false;
+			if(MOOSTime()-msg.GetTime()<=5){
+				state_transit = false;
+			}
 		}
 		else if(key == "ACOMMS_RECEIVED_DATA"){
-			if(state==s_annealing&&annealer_initialized){
-				mlist.Clear();
-				codec->decode(msg.GetString(),&mlist);
-				cout << "Received " << mlist.count() << " points from K" << endl;
-				double count = mlist.count();
-				for(int i=0;i<count;i++){
-					stringstream measIn;
-					Measurement meas = mlist.mlist(i);
-					measIn << "utc=" << meas.t()<<",";
-					measIn << "x=" << meas.x()<<",";
-					measIn << "y=" << meas.y()<<",";
-					measIn << "temp=" << meas.temp();
-					anneal.addMeas(anneal.parseMeas(measIn.str()));
+			if(MOOSTime()-msg.GetTime()<=5){
+				if (msg.GetString().substr(0,7) == "varname") {
+					parseAcomms(msg.GetString());
+					if(id==2){
+						state = s_acomms_listening;
+					}
 				}
-			}
-			else{
-				parseAcomms(msg.GetString());
+				else if(state==s_annealing&&annealer_initialized){
+					mlist.Clear();
+					codec->decode(msg.GetString(),&mlist);
+					cout << "Received " << mlist.count() << " points from K" << endl;
+					double count = mlist.count();
+					for(int i=0;i<count;i++){
+						stringstream measIn;
+						Measurement meas = mlist.mlist(i);
+						measIn << "utc=" << meas.t()<<",";
+						measIn << "x=" << meas.x()<<",";
+						measIn << "y=" << meas.y()<<",";
+						measIn << "temp=" << meas.temp();
+						anneal.addMeas(anneal.parseMeas(measIn.str()));
+					}
+				}
 			}
 		}
 		else if(key == "ACOMMS_DRIVER_STATUS"){
@@ -162,7 +171,7 @@ bool FrontEstimate::Iterate()
 
 			case s_initial_scan: //Travel North
 				if(!state_initialized){
-					publishWaypoint(160,navy);
+					publishWaypoint(130,navy);
 					state_transit = true;
 					state_initialized = true;
 				}
@@ -190,6 +199,7 @@ bool FrontEstimate::Iterate()
 					unhandled_reports.clear();
 				}
 				else if(MOOSTime()-tSent>timeout){
+					cout << "No ack - Resending" << endl;
 					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
 					tSent = MOOSTime();
 				}
@@ -197,9 +207,10 @@ bool FrontEstimate::Iterate()
 
 			case s_acomms_periodic: //Periodic sensor reports
 				if(!state_initialized){
+					cout << "Initialized Periodic Acomms" << endl;
 					tSent = MOOSTime();
 					state_initialized = true;
-					state_transit = true;
+					state_transit = false;
 				}
 				else{
 					if(MOOSTime()-tSent>10){
@@ -282,7 +293,7 @@ bool FrontEstimate::Iterate()
 					initializeAnnealer();
 					cout << "Annealer Initialized" << endl;
 
-					bhvZigzag("east",navx,170,navy,-45);
+					bhvZigzag("east",navx,180,navy,-45);
 					state_transit = true;
 					state_initialized = true;
 					unhandled_reports.clear();
@@ -311,33 +322,33 @@ bool FrontEstimate::Iterate()
 
 void FrontEstimate::bhvLawnmower(string dir, double xmin, double xmax, double ymin, double ymax){
 	vector<double> xvec,yvec;
-		int cycles = 10;
-		double xspan = (xmax-xmin)/cycles;
-		if(dir=="east"){
-			xvec.push_back(xmax);
+	int cycles = 10;
+	double xspan = (xmax-xmin)/cycles;
+	if(dir=="east"){
+		xvec.push_back(xmax);
+		yvec.push_back(ymax);
+		for(int i=0;i<cycles;i++){
+			xvec.push_back(xmin+i*(xspan));
+			xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
+			xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
+			yvec.push_back(ymin);
+			yvec.push_back(ymin);
 			yvec.push_back(ymax);
-			for(int i=0;i<cycles;i++){
-				xvec.push_back(xmin+i*(xspan));
-				xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
-				xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
-				yvec.push_back(ymin);
-				yvec.push_back(ymin);
-				yvec.push_back(ymax);
-			}
 		}
-		else if(dir=="west"){
-			xvec.push_back(xmin);
+	}
+	else if(dir=="west"){
+		xvec.push_back(xmin);
+		yvec.push_back(ymax);
+		for(int i=1;i<cycles;i++){
+			xvec.push_back(xmax-i*(xspan));
+			xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
+			xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
+			yvec.push_back(ymin);
+			yvec.push_back(ymin);
 			yvec.push_back(ymax);
-			for(int i=1;i<cycles;i++){
-				xvec.push_back(xmax-i*(xspan));
-				xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
-				xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
-				yvec.push_back(ymin);
-				yvec.push_back(ymin);
-				yvec.push_back(ymax);
-			}
 		}
-		publishSegList(xvec,yvec);
+	}
+	publishSegList(xvec,yvec);
 }
 
 void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax){
@@ -406,30 +417,37 @@ void FrontEstimate::initializeAnnealer(){
 }
 
 void FrontEstimate::parseAcomms(string msgIn){
-	string varname; double param;
-	MOOSChomp(msgIn,"varname=");
-	varname = MOOSChomp(msgIn,",");
-	MOOSChomp(msgIn,"=");
-	param = boost::lexical_cast<double>(MOOSChomp(msgIn,","));
+	try{
+		string varname; double param;
+		MOOSChomp(msgIn,"varname=");
+		varname = MOOSChomp(msgIn,",");
+		MOOSChomp(msgIn,"=");
+		cout << msgIn << "end" << endl;
+		cout << msgIn.size() << endl;
+		param = boost::lexical_cast<double>(MOOSChomp(msgIn,","));
 
-	cout << "Heard: " << varname << " set to " << param << endl;
+		cout << "Heard: " << varname << " set to " << param << endl;
 
-	if(varname=="T_N"){	// ID 1->2
-		min_T_N = param;
-		max_T_N = param;
-		T_N = param;
+		if(varname=="T_N"){	// ID 1->2
+			min_T_N = param;
+			max_T_N = param;
+			T_N = param;
+		}
+		else if(varname == "T_S"){
+			min_T_S = param;
+			max_T_S = param;
+			T_S = param;
+		}
+		heard_acomms = true;
 	}
-	else if(varname == "T_S"){
-		min_T_S = param;
-		max_T_S = param;
-		T_S = param;
+	catch(boost::bad_lexical_cast & e){
+		heard_acomms=false;
 	}
-	heard_acomms = true;
 }
 
 string FrontEstimate::serializeParameter(string name, double parameter){
 	stringstream msgOut;
-	msgOut << "varname=" << name << "," << "parameter=" << parameter;
+	msgOut << "varname=" << name << "," << "parameter=" << parameter << ",";
 	return msgOut.str();
 }
 

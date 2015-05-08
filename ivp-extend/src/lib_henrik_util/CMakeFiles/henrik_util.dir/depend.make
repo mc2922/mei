@@ -4,6 +4,7 @@
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: src/lib_henrik_util/CFrontSim.cpp
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: src/lib_henrik_util/CFrontSim.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: src/lib_henrik_util/Random.h
+src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/ClientDefines.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSApp.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSApp.hxx
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CFrontSim.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSInstrument.h
@@ -63,6 +64,7 @@ src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: src/lib_henrik_
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: src/lib_henrik_util/CSimAnneal.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: src/lib_henrik_util/Random.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: /home/mit/hoverland/moos-ivp/ivp/src/lib_mbutil/MBUtils.h
+src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/ClientDefines.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSApp.h
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSApp.hxx
 src/lib_henrik_util/CMakeFiles/henrik_util.dir/CSimAnneal.cpp.o: /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSInstrument.h
