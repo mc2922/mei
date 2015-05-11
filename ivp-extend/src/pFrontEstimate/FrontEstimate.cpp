@@ -247,7 +247,7 @@ bool FrontEstimate::Iterate()
 					else{
 						if(MOOSTime()-tSent>10){
 							if(driver_ready){
-								cout << "Compiling message: "<< mlist.count() << " measurements" << endl;
+								cout << "Compiling message: "<< unhandled_reports.size() << " measurements" << endl;
 								while(!unhandled_reports.empty()){
 									Measurement meas = unhandled_reports.back();
 									mlist.add_mlist()->CopyFrom(meas);
@@ -287,7 +287,7 @@ bool FrontEstimate::Iterate()
 							//								state_transit=true;
 							//							}
 							//							else{
-							m_Comms.Notify("GOTO_UPDATES","points=140,-100");
+							m_Comms.Notify("GOTO_UPDATES","points=125,-90");
 							m_Comms.Notify("MISSION_MODE","GOTO");
 							state_transit = true;
 							//}
@@ -334,7 +334,7 @@ bool FrontEstimate::Iterate()
 						initializeAnnealer();
 						cout << "Annealer Initialized" << endl;
 
-						bhvZigzag("east",navx,170,navy,-35);
+						bhvZigzag("east",navx,170,170,-35);
 						state_transit = true;
 						state_initialized = true;
 						unhandled_reports.clear();
