@@ -372,14 +372,14 @@ bool FrontEstimate::Iterate()
 
 						if(state_transit){
 							if(goingNorth){
-								if(fabs(latest_average-T_N)<0.1*(T_S-T_N)){
+								if(fabs(latest_average-T_N)<0.5){
 									double xoffset = tan(leg_angle)*fabs(navy+170);
 									publishWaypoint(navx+goingEast*xoffset,-170);
 									goingNorth = false;
 								}
 							}
 							else{
-								if(fabs(latest_average-T_S)<0.1*(T_S-T_N)){
+								if(fabs(latest_average-T_S)<0.5){
 									double xoffset = tan(leg_angle)*fabs(navy+35);
 									publishWaypoint(navx+goingEast*xoffset,-35);
 									goingNorth = true;
