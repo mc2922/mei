@@ -3,4 +3,4 @@
 #define TransmitOffset 30
 #define TransmitPeriod 40
 #define RETURN_PT 0,-180
-#define CRUISESPEED 1.2
+#define CRUISESPEED 1
