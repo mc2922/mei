@@ -60,6 +60,10 @@ Processconfig = pFrontEstimate
     id = 1
     #endif
 
+    mission_length = 20
+    cooling_steps = 5000
+    temp_fac = 10
+
     min_offset = -120
     max_offset = -60
     min_angle = -5
