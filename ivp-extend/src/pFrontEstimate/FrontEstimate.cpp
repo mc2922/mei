@@ -57,6 +57,9 @@ FrontEstimate::FrontEstimate()
 	mlist.set_count(0);
 	missionStart = 0;
 	mission_length = 20;
+	latest_average = 0;
+	leg_angle = MOOSDeg2Rad(15);
+	goingEast = 1;
 
 	codec = goby::acomms::DCCLCodec::get();
 	try {
@@ -127,6 +130,13 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 			if(MOOSChomp(meas,",")==vname){
 				if(state==s_annealing&&annealer_initialized){
 					anneal.addMeas(anneal.parseMeas(msg.GetString()));
+
+					unhandled_reports.push_back(parseSensor(msg.GetString()));
+					if(unhandled_reports.size()>15){
+						unhandled_reports.erase(unhandled_reports.begin());
+						latest_average = simpleAverage(unhandled_reports);
+					}
+
 				}
 				else
 					unhandled_reports.push_back(parseSensor(msg.GetString()));
@@ -203,7 +213,7 @@ bool FrontEstimate::Iterate()
 
 				case s_initial_scan: //Travel North
 					if(!state_initialized){
-						publishWaypoint(130,navy);
+						publishWaypoint(160,navy);
 						state_transit = true;
 						state_initialized = true;
 					}
@@ -287,7 +297,7 @@ bool FrontEstimate::Iterate()
 							//								state_transit=true;
 							//							}
 							//							else{
-							m_Comms.Notify("GOTO_UPDATES","points=125,-90");
+							m_Comms.Notify("GOTO_UPDATES","points=175,-90");
 							m_Comms.Notify("MISSION_MODE","GOTO");
 							state_transit = true;
 							//}
@@ -334,11 +344,14 @@ bool FrontEstimate::Iterate()
 						initializeAnnealer();
 						cout << "Annealer Initialized" << endl;
 
-						bhvZigzag("east",navx,170,-170,-35);
+						//bhvZigzag("east",navx,170,-170,-35);
+						double xoffset = tan(leg_angle)*fabs(navy+35);
+						publishWaypoint(navx+xoffset,-35);
 						state_transit = true;
 						state_initialized = true;
 						unhandled_reports.clear();
 						tSent = MOOSTime();
+						goingNorth = true;
 					}
 					else{
 						double temperature = exp(-2*double(anneal_step)/double(cooling_steps));
@@ -350,13 +363,46 @@ bool FrontEstimate::Iterate()
 							tSent = MOOSTime();
 						}
 
-						if(!state_transit){
-							if(navx > 115){
-								bhvZigzag("west",-50,navx,-50,-150);
+						if(navx > 125){
+							goingEast = -1;
+						}
+						else if(navx < -30){
+							goingEast = 1;
+						}
+
+						if(state_transit){
+							if(goingNorth){
+								if(fabs(latest_average-T_N)<0.15*(T_S-T_N)){
+									double xoffset = tan(leg_angle)*fabs(navy+170);
+									publishWaypoint(navx+goingEast*xoffset,-170);
+									goingNorth = false;
+								}
 							}
 							else{
-								bhvZigzag("east",navx,170,-50,-150);
+								if(fabs(latest_average-T_S)<0.15*(T_S-T_N)){
+									double xoffset = tan(leg_angle)*fabs(navy+35);
+									publishWaypoint(navx+goingEast*xoffset,-35);
+									goingNorth = true;
+								}
 							}
+						}
+						else{
+							if(goingNorth){
+								double xoffset = tan(leg_angle)*fabs(navy+170);
+								publishWaypoint(navx+goingEast*xoffset,-170);
+								goingNorth = false;
+							}
+							else{
+								double xoffset = tan(leg_angle)*fabs(navy+35);
+								publishWaypoint(navx+goingEast*xoffset,-35);
+								goingNorth = true;
+							}
+							//if(navx > 115){
+							//	bhvZigzag("west",-50,navx,-50,-150);
+							//}
+							//else{
+							//	bhvZigzag("east",navx,170,-50,-150);
+							//}
 							state_transit=true;
 						}
 					}
@@ -407,6 +453,7 @@ void FrontEstimate::initializeAnnealer(){
 	vars.push_back(min_beta);
 	vars.push_back(min_T_N);
 	vars.push_back(min_T_S);
+
 	anneal.setMinVal(vars);
 	vars.clear();
 	vars.push_back(max_offset);

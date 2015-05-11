@@ -72,6 +72,10 @@ private:
 	bool heard_acomms;
 	bool driver_ready;
 	double utc_time_offset;
+	double latest_average;
+	bool goingNorth;
+	double leg_angle;
+	double goingEast;
 
 	goby::acomms::DCCLCodec* codec;
 	MeasurementList mlist;
