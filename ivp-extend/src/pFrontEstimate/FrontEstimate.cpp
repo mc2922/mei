@@ -334,7 +334,7 @@ bool FrontEstimate::Iterate()
 						initializeAnnealer();
 						cout << "Annealer Initialized" << endl;
 
-						bhvZigzag("east",navx,170,170,-35);
+						bhvZigzag("east",navx,170,-170,-35);
 						state_transit = true;
 						state_initialized = true;
 						unhandled_reports.clear();
@@ -370,7 +370,7 @@ bool FrontEstimate::Iterate()
 
 void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax){
 	vector<double> xvec,yvec;
-	int cycles = 5;
+	int cycles = 4;
 	double xspan = (xmax-xmin)/cycles;
 	if(dir=="east"){
 		xvec.push_back(xmin);

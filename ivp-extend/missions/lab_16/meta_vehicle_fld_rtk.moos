@@ -49,7 +49,7 @@ Processconfig = ANTLER
 Processconfig = pFrontEstimate
 {
     IterateMode = 0    // regular iterate and mail
-    AppTick     = 10
+    AppTick     = 5
 
     vname = $(VNAME)
     #ifdef $(VNAME) SILVANA
@@ -80,8 +80,8 @@ Processconfig = pFrontEstimate
     max_T_N = 25 
     min_T_S = 20
     max_T_S = 30 
-    min_alpha = 500
-    max_alpha = 500
+    min_alpha = 350
+    max_alpha = 350
 }
 
 #include ../resources/plugs/plug_iKST.moos
