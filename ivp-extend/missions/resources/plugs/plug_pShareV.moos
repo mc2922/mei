@@ -8,6 +8,7 @@ ProcessConfig = pShare
     output = ACKEDCOMMS_RETURN_ACK->$(SHOREHOST):$(SLPORT)
   
     output = UCTD_SENSOR_REQUEST->$(SHOREHOST):$(SLPORT)
+    output = UCTD_PARAMETER_ESTIMATE->$(SHOREHOST):$(SLPORT)
 
      #ifdef $(VNAME) KESTREL
     output = UTC_TIME_OFFSET->192.168.1.104:9401

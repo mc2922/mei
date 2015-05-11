@@ -5,6 +5,12 @@ ProcessConfig = uTermCommand_Hover
 
     //front estimate commands
     CMD = start --> FRONT_ESTIMATE_START_ALL --> true
+    CMD = start --> MISSION_MODE_ALL --> FRONT_ESTIMATE
+    CMD = stop --> FRONT_ESTIMATE_START_ALL --> false
+    CMD = start --> DEPLOY_ALL --> true
+
+    CMD = KFE --> MISSION_MODE_KESTREL --> FRONT_ESTIMATE
+    CMD = SFE --> MISSION_MODE_SILVANA --> FRONT_ESTIMATE
 
     // nostromo goto
     CMD = NG --> MISSION_MODE_NOSTROMO --> GOTO

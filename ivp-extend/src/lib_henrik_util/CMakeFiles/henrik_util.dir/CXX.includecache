@@ -6,6 +6,12 @@
 
 #IncludeRegexTransform: 
 
+/home/mit/hoverland/mei/ivp-extend/src/lib_henrik_util/CFrontSim.cpp
+iostream
+-
+CFrontSim.h
+/home/mit/hoverland/mei/ivp-extend/src/lib_henrik_util/CFrontSim.h
+
 /home/mit/hoverland/mei/ivp-extend/src/lib_henrik_util/CFrontSim.h
 MOOS/libMOOS/MOOSLib.h
 /home/mit/hoverland/mei/ivp-extend/src/lib_henrik_util/MOOS/libMOOS/MOOSLib.h
@@ -53,8 +59,6 @@ set
 -
 time.h
 -
-
-/home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/ClientDefines.h
 
 /home/mit/hoverland/moos/core-moos/Core/libMOOS/App/include/MOOS/libMOOS/App/MOOSApp.h
 MOOS/libMOOS/Utils/MOOSUtilityFunctions.h

@@ -43,7 +43,7 @@ Processconfig = ANTLER
 Processconfig = pFrontEstimate
 {
     IterateMode = 0    // regular iterate and mail
-    AppTick     = 10
+    AppTick     = 5
 
     vname = $(VNAME)
     #ifdef $(VNAME) SILVANA
@@ -54,11 +54,15 @@ Processconfig = pFrontEstimate
     id = 1
     #endif
 
+    mission_length = 20
+    cooling_steps = 5000
+    temp_fac = 10
+
     min_offset = -120
     max_offset = -60
     min_angle = -5
     max_angle = 15
-    min_amplitude = 0
+    min_amplitude = 5
     max_amplitude = 50
     min_period = 200
     max_period = 600

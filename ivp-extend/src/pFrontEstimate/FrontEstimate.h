@@ -40,7 +40,6 @@ protected:
 
 	//behaviors
 	void bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax);
-	void bhvLawnmower(string dir, double xmin, double xmax, double ymin, double ymax);
 	void publishWaypoint(double xin, double yin);
 	void publishSegList(vector<double> xin, vector<double> yin);
 
@@ -65,12 +64,11 @@ private:
 
 	double id;
 	double navx,navy;
-	double tSent, timeout;
-	string vname;
-	string start;
+	double tSent, timeout, missionStart;
+	string vname,start;
 	vector<Measurement> unhandled_reports;
 	string latest_acomms;
-	bool state_initialized, state_transit;
+	bool state_initialized, state_transit, utc_initialized;
 	bool heard_acomms;
 	bool driver_ready;
 	double utc_time_offset;
@@ -78,14 +76,15 @@ private:
 	goby::acomms::DCCLCodec* codec;
 	MeasurementList mlist;
 
+	double mission_length;
 	//Annealer parameters
 	int cooling_steps;
 	int anneal_step;
 	bool annealer_initialized;
+	double temp_fac;
 
 	// Front parameters
 	double offset;
-	double east_offset;
 	double angle;
 	double amplitude;
 	double period;

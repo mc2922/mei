@@ -10,6 +10,7 @@
 #include "FrontEstimate.h"
 
 using namespace std;
+using namespace HoverAcomms;
 
 //---------------------------------------------------------
 // Constructor
@@ -20,6 +21,7 @@ FrontEstimate::FrontEstimate()
 	anneal.clearMeas();
 	cooling_steps = 100;
 	anneal_step = 0;
+	temp_fac = 1;
 
 	min_offset = -200;
 	max_offset = 0;
@@ -50,8 +52,11 @@ FrontEstimate::FrontEstimate()
 	state_transit = true;
 	heard_acomms = false;
 	annealer_initialized = false;
+	utc_initialized = false;
 	driver_ready = false;
 	mlist.set_count(0);
+	missionStart = 0;
+	mission_length = 20;
 
 	codec = goby::acomms::DCCLCodec::get();
 	try {
@@ -91,16 +96,31 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 		else if (key == "NAV_Y") {
 			navy = msg.GetDouble();
 		}
+
+		else if(key == "GOTO_END"){
+			if(MOOSTime()-msg.GetTime()<=5){
+				state_transit = false;
+			}
+		}
+
 		else if (key == "FRONT_ESTIMATE_START") {
 			if(MOOSTime()-msg.GetTime()<=5){
 				start = msg.GetString();
-				if(id==1){
+
+				if(missionStart==0){
+					missionStart = MOOSTime();
+				}
+
+				if(id==1&&!utc_initialized){
+					cout << "Initialized utc offset" << endl;
 					utc_time_offset = MOOSTime();
 					m_Comms.Notify("UTC_TIME_OFFSET",utc_time_offset);
 					unhandled_reports.clear();
+					utc_initialized = true;
 				}
 			}
 		}
+
 		else if(key == "UCTD_SENSOR_REPORT"){
 			string meas = msg.GetString();
 			MOOSChomp(meas,"vname=");
@@ -113,34 +133,38 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 			}
 		}
 
-		else if(key == "GOTO_END"){
-			if(MOOSTime()-msg.GetTime()<=5){
-				state_transit = false;
+		else if(key == "ACOMMS_RECEIVED"){
+			AcommsReception reception;
+			reception.parseFromString(msg.GetString());
+
+			if(reception.getStatus()==GOOD){
+				cout << "Good acomms received" << endl;
+				if(MOOSTime()-msg.GetTime()<=5){
+					if (reception.getData().substr(0,7) == "varname") {
+						parseAcomms(reception.getData());
+						if(id==2){
+							state = s_acomms_listening;
+						}
+					}
+					else if(state==s_annealing&&annealer_initialized){
+						mlist.Clear();
+						codec->decode(reception.getData(),&mlist);
+						cout << "Received " << mlist.count() << " points from K" << endl;
+						double count = mlist.count();
+						for(int i=0;i<count;i++){
+							stringstream measIn;
+							Measurement meas = mlist.mlist(i);
+							measIn << "utc=" << meas.t()<<",";
+							measIn << "x=" << meas.x()<<",";
+							measIn << "y=" << meas.y()<<",";
+							measIn << "temp=" << meas.temp();
+							anneal.addMeas(anneal.parseMeas(measIn.str()));
+						}
+					}
+				}
 			}
-		}
-		else if(key == "ACOMMS_RECEIVED_DATA"){
-			if(MOOSTime()-msg.GetTime()<=5){
-				if (msg.GetString().substr(0,7) == "varname") {
-					parseAcomms(msg.GetString());
-					if(id==2){
-						state = s_acomms_listening;
-					}
-				}
-				else if(state==s_annealing&&annealer_initialized){
-					mlist.Clear();
-					codec->decode(msg.GetString(),&mlist);
-					cout << "Received " << mlist.count() << " points from K" << endl;
-					double count = mlist.count();
-					for(int i=0;i<count;i++){
-						stringstream measIn;
-						Measurement meas = mlist.mlist(i);
-						measIn << "utc=" << meas.t()<<",";
-						measIn << "x=" << meas.x()<<",";
-						measIn << "y=" << meas.y()<<",";
-						measIn << "temp=" << meas.temp();
-						anneal.addMeas(anneal.parseMeas(measIn.str()));
-					}
-				}
+			else{
+				cout << "Bad acomms received" << endl;
 			}
 		}
 		else if(key == "ACOMMS_DRIVER_STATUS"){
@@ -163,192 +187,185 @@ bool FrontEstimate::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool FrontEstimate::Iterate()
 {
-	if(start=="true"){
-		requestSensor();
-
-		if(id==1){
-			switch(state) {
-
-			case s_initial_scan: //Travel North
-				if(!state_initialized){
-					publishWaypoint(130,navy);
-					state_transit = true;
-					state_initialized = true;
-				}
-				else if(!state_transit){
-					cout << "Heard: " << unhandled_reports.size() << " reports" << endl;
-					T_N = simpleAverage(unhandled_reports);
-					unhandled_reports.clear();
-					tellMe("T_N",T_N);
-
-					latest_acomms = serializeParameter("T_N",T_N);
-					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
-					tSent = MOOSTime();
-
-					state = s_acomms_ack;
-					state_transit = false;
-					state_initialized = false;
-				}
-				break;
-
-			case s_acomms_ack: //Ack first for ID1
-				if(heard_acomms){
-					state = s_acomms_periodic;
-					state_initialized = false;
-					heard_acomms = false;
-					unhandled_reports.clear();
-				}
-				else if(MOOSTime()-tSent>timeout){
-					cout << "No ack - Resending" << endl;
-					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
-					tSent = MOOSTime();
-				}
-				break;
-
-			case s_acomms_periodic: //Periodic sensor reports
-				if(!state_initialized){
-					cout << "Initialized Periodic Acomms" << endl;
-					tSent = MOOSTime();
-					state_initialized = true;
-					state_transit = false;
-				}
-				else{
-					if(MOOSTime()-tSent>10){
-						if(driver_ready){
-							cout << "Compiling message" << endl;
-							while(!unhandled_reports.empty()){
-								Measurement meas = unhandled_reports.back();
-								mlist.add_mlist()->CopyFrom(meas);
-								double count = mlist.count()+1;
-								mlist.set_count(count);
-								if(count==28){
-									unhandled_reports.clear();
-								}
-								else{
-									unhandled_reports.pop_back();
-									double excess = unhandled_reports.size()+count-28;
-									if(excess>0){ //discarding every other report
-										unhandled_reports.pop_back();
-									}
-								}
-							}
-							cout << "Sending: " << mlist.count() << " measurements" << endl;
-							string bytes;
-							codec->encode(&bytes,mlist);
-							m_Comms.Notify("ACOMMS_TRANSMIT_DATA_BINARY",(void *) bytes.data(), bytes.size());
-							mlist.Clear();
-							mlist.set_count(0);
-							tSent = MOOSTime();
-						}
-						else{
-							cout << "Driver was not ready!" << endl;
-						}
-					}
-					if(!state_transit){
-						if(navx>115)
-							bhvLawnmower("west",-50,170,-190,-40);
-						else
-							bhvLawnmower("east",-50,170,-190,-40);
-						state_transit=true;
-					}
-				}
-				break;
-
-			}
-		}
-
+	if(missionStart!=0 && (MOOSTime()-missionStart) >= (mission_length*60-30)){
 		if(id==2){
-			switch(state) {
+			postParameterReport();
+		}
+		cout << "Mission Ended" << endl;
+		m_Comms.Notify("MISSION_MODE","STATION-KEEP");
+	}
+	else{
+		if(start=="true"){
+			requestSensor();
 
-			case s_initial_scan: //Estimate offset
-				if(!state_initialized){
-					publishWaypoint(-50,navy);
-					state_transit = true;
-					state_initialized = true;
-					unhandled_reports.clear();
-				}
-				else if(!state_transit){
-					cout << "Heard: " << unhandled_reports.size() << " reports" << endl;
-					T_S = simpleAverage(unhandled_reports);
-					unhandled_reports.clear();
-					tellMe("T_S",T_S);
-					latest_acomms = serializeParameter("T_S",T_S);
+			if(id==1){
+				switch(state) {
 
-					state = s_acomms_listening;
-				}
-				break;
+				case s_initial_scan: //Travel North
+					if(!state_initialized){
+						publishWaypoint(130,navy);
+						state_transit = true;
+						state_initialized = true;
+					}
+					else if(!state_transit){
+						cout << "Heard: " << unhandled_reports.size() << " reports" << endl;
+						T_N = simpleAverage(unhandled_reports);
+						unhandled_reports.clear();
+						tellMe("T_N",T_N);
 
-			case s_acomms_listening: //Listen first for ID 2
-				if(heard_acomms){
-					heard_acomms = false;
-					m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
-					state = s_annealing;
-					state_initialized = false;
-				}
-				break;
+						latest_acomms = serializeParameter("T_N",T_N);
+						m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
+						tSent = MOOSTime();
 
-			case s_annealing:
-				if(!state_initialized){
+						state = s_acomms_ack;
+						state_transit = false;
+						state_initialized = false;
+					}
+					break;
 
-					initializeAnnealer();
-					cout << "Annealer Initialized" << endl;
-
-					bhvZigzag("east",navx,180,navy,-45);
-					state_transit = true;
-					state_initialized = true;
-					unhandled_reports.clear();
-					tSent = MOOSTime();
-				}
-				else{
-					double temperature = exp(-2*double(anneal_step)/double(cooling_steps));
-					double energy = anneal.heatBath(temperature);
-
-					if((MOOSTime()-tSent)>30){
-						postParameterReport();
+				case s_acomms_ack: //Ack first for ID1
+					if(heard_acomms){
+						state = s_acomms_periodic;
+						state_initialized = false;
+						heard_acomms = false;
+						unhandled_reports.clear();
+					}
+					else if(MOOSTime()-tSent>timeout){
+						cout << "No ack - Resending" << endl;
+						m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
 						tSent = MOOSTime();
 					}
+					break;
 
-					if(!state_transit){
-						bhvZigzag("west",navx,-50,navy,-45);
-						state_transit=true;
+				case s_acomms_periodic: //Periodic sensor reports
+					if(!state_initialized){
+						cout << "Initialized Periodic Acomms" << endl;
+						tSent = MOOSTime();
+						state_initialized = true;
+						state_transit = false;
 					}
+					else{
+						if(MOOSTime()-tSent>10){
+							if(driver_ready){
+								cout << "Compiling message: "<< mlist.count() << " measurements" << endl;
+								while(!unhandled_reports.empty()){
+									Measurement meas = unhandled_reports.back();
+									mlist.add_mlist()->CopyFrom(meas);
+									double count = mlist.count()+1;
+									mlist.set_count(count);
+									if(count==28){
+										unhandled_reports.clear();
+									}
+									else{
+										unhandled_reports.pop_back();
+										double excess = unhandled_reports.size()+count-28;
+										if(excess>0){ //discarding every other report
+											unhandled_reports.pop_back();
+										}
+									}
+								}
+								cout << "Sending: " << mlist.count() << " measurements" << endl;
+								string bytes;
+								codec->encode(&bytes,mlist);
+								m_Comms.Notify("ACOMMS_TRANSMIT_DATA_BINARY",(void *) bytes.data(), bytes.size());
+								mlist.Clear();
+								mlist.set_count(0);
+								tSent = MOOSTime();
+							}
+							else{
+								cout << "Driver was not ready!" << endl;
+							}
+						}
+						if(!state_transit){
+							//							if(MOOSTime()-missionStart<10*60){
+							//								if(navy>-100){
+							//									publishWaypoint(navx,-180);
+							//								}
+							//								else{
+							//									publishWaypoint(navx,0);
+							//								}
+							//								state_transit=true;
+							//							}
+							//							else{
+							m_Comms.Notify("GOTO_UPDATES","points=140,-100");
+							m_Comms.Notify("MISSION_MODE","GOTO");
+							state_transit = true;
+							//}
+						}
+					}
+					break;
+
 				}
-				break;
+			}
+
+			if(id==2){
+				switch(state) {
+
+				case s_initial_scan: //Estimate offset
+					if(!state_initialized){
+						publishWaypoint(-50,navy);
+						state_transit = true;
+						state_initialized = true;
+						unhandled_reports.clear();
+					}
+					else if(!state_transit){
+						cout << "Heard: " << unhandled_reports.size() << " reports" << endl;
+						T_S = simpleAverage(unhandled_reports);
+						unhandled_reports.clear();
+						tellMe("T_S",T_S);
+						latest_acomms = serializeParameter("T_S",T_S);
+
+						state = s_acomms_listening;
+						state_initialized = false;
+					}
+					break;
+
+				case s_acomms_listening: //Listen first for ID 2
+					if(heard_acomms){
+						heard_acomms = false;
+						m_Comms.Notify("ACOMMS_TRANSMIT_DATA",latest_acomms);
+						state = s_annealing;
+					}
+					break;
+
+				case s_annealing:
+					if(!state_initialized){
+
+						initializeAnnealer();
+						cout << "Annealer Initialized" << endl;
+
+						bhvZigzag("east",navx,170,navy,-35);
+						state_transit = true;
+						state_initialized = true;
+						unhandled_reports.clear();
+						tSent = MOOSTime();
+					}
+					else{
+						double temperature = exp(-2*double(anneal_step)/double(cooling_steps));
+						double energy = anneal.heatBath(temperature);
+						anneal_step++;
+
+						if((MOOSTime()-tSent)>30){
+							postParameterReport();
+							tSent = MOOSTime();
+						}
+
+						if(!state_transit){
+							if(navx > 115){
+								bhvZigzag("west",-50,navx,-50,-150);
+							}
+							else{
+								bhvZigzag("east",navx,170,-50,-150);
+							}
+							state_transit=true;
+						}
+					}
+					break;
+				}
 			}
 		}
 	}
 	return true;
-}
-
-void FrontEstimate::bhvLawnmower(string dir, double xmin, double xmax, double ymin, double ymax){
-	vector<double> xvec,yvec;
-	int cycles = 10;
-	double xspan = (xmax-xmin)/cycles;
-	if(dir=="east"){
-		xvec.push_back(xmax);
-		yvec.push_back(ymax);
-		for(int i=0;i<cycles;i++){
-			xvec.push_back(xmin+i*(xspan));
-			xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
-			xvec.push_back(xmin+i*(xspan)+(i-0.5)*(xspan));
-			yvec.push_back(ymin);
-			yvec.push_back(ymin);
-			yvec.push_back(ymax);
-		}
-	}
-	else if(dir=="west"){
-		xvec.push_back(xmin);
-		yvec.push_back(ymax);
-		for(int i=1;i<cycles;i++){
-			xvec.push_back(xmax-i*(xspan));
-			xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
-			xvec.push_back(xmax-i*(xspan)-(i-0.5)*(xspan));
-			yvec.push_back(ymin);
-			yvec.push_back(ymin);
-			yvec.push_back(ymax);
-		}
-	}
-	publishSegList(xvec,yvec);
 }
 
 void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin, double ymax){
@@ -358,7 +375,7 @@ void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin,
 	if(dir=="east"){
 		xvec.push_back(xmin);
 		yvec.push_back(ymin);
-		for(int i=1;i<cycles;i++){
+		for(int i=1;i<cycles+1;i++){
 			xvec.push_back(xmin+(i-0.5)*(xspan));
 			xvec.push_back(xmin+i*(xspan));
 			yvec.push_back(ymax);
@@ -368,8 +385,8 @@ void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin,
 	else if(dir=="west"){
 		xvec.push_back(xmax);
 		yvec.push_back(ymin);
-		for(int i=1;i<cycles;i++){
-			xvec.push_back(xmax-(i-0.5)*(xspan/2));
+		for(int i=1;i<cycles+1;i++){
+			xvec.push_back(xmax-(i-0.5)*(xspan));
 			xvec.push_back(xmax-i*(xspan));
 			yvec.push_back(ymax);
 			yvec.push_back(ymin);
@@ -379,7 +396,7 @@ void FrontEstimate::bhvZigzag(string dir, double xmin, double xmax, double ymin,
 }
 
 void FrontEstimate::initializeAnnealer(){
-	anneal.setVars(9, 1, true);
+	anneal.setVars(9, temp_fac, true);
 	vector<double> vars;
 	vars.push_back(min_offset);
 	vars.push_back(min_angle);
@@ -480,8 +497,8 @@ void FrontEstimate::publishWaypoint(double xin, double yin){
 	pointsOut << ",label=v"<< id <<","<<seglist_label;
 	m_Comms.Notify("VIEW_SEGLIST",pointsOut.str());
 	cout << waypointsOut.str() << endl;
-	m_Comms.Notify("GOTO_UPDATES",waypointsOut.str());
-	m_Comms.Notify("MISSION_MODE","GOTO");
+	m_Comms.Notify("FRONT_ESTIMATE_UPDATES",waypointsOut.str());
+	m_Comms.Notify("MISSION_MODE","FRONT_ESTIMATE");
 }
 
 void FrontEstimate::publishSegList(vector<double> xin, vector<double> yin){
@@ -507,8 +524,8 @@ void FrontEstimate::publishSegList(vector<double> xin, vector<double> yin){
 
 	pointsOut << ",label=v"<< id <<","<<seglist_label;
 	m_Comms.Notify("VIEW_SEGLIST",pointsOut.str());
-	m_Comms.Notify("GOTO_UPDATES",waypointsOut.str());
-	m_Comms.Notify("MISSION_MODE","GOTO");
+	m_Comms.Notify("FRONT_ESTIMATE_UPDATES",waypointsOut.str());
+	m_Comms.Notify("MISSION_MODE","FRONT_ESTIMATE");
 }
 
 void FrontEstimate::requestSensor(){
@@ -584,6 +601,7 @@ bool FrontEstimate::OnStartUp()
 	m_MissionReader.GetConfigurationParam("vname", vname);
 
 	m_MissionReader.GetConfigurationParam("cooling_steps", cooling_steps);
+	m_MissionReader.GetConfigurationParam("temp_fac",temp_fac);
 
 	//Front estimate parameters
 	m_MissionReader.GetConfigurationParam("min_offset", min_offset);
@@ -605,6 +623,8 @@ bool FrontEstimate::OnStartUp()
 	m_MissionReader.GetConfigurationParam("min_alpha", min_alpha);
 	m_MissionReader.GetConfigurationParam("max_alpha", max_alpha);
 
+	m_MissionReader.GetConfigurationParam("mission_length", mission_length);
+
 	if(id==1){
 	}
 	else if(id==2){
@@ -622,7 +642,7 @@ bool FrontEstimate::OnConnectToServer()
 	m_Comms.Register("NAV_X", 0);
 	m_Comms.Register("NAV_Y", 0);
 	m_Comms.Register("GOTO_END",0);
-	m_Comms.Register("ACOMMS_RECEIVED_DATA",0);
+	m_Comms.Register("ACOMMS_RECEIVED",0);
 	m_Comms.Register("UCTD_SENSOR_REPORT",0);
 	m_Comms.Register("ACOMMS_DRIVER_STATUS",0);
 	return true;
