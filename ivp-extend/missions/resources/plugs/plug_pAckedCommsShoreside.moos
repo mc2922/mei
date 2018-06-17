@@ -6,10 +6,9 @@ ProcessConfig = pAckedCommsShoreside
     
     vehicles = NOSTROMO,SILVANA,KESTREL,ICARUS
     
-    BRIDGE = var=FRONT_ESTIMATE_START,repeat=5,delay=0.5
-    
     BRIDGE = var=MISSION_MODE,repeat=5,delay=0.5
     BRIDGE = var=MOOS_MANUAL_OVERRIDE,repeat=5,delay=0.5
     BRIDGE = var=GOTO_UPDATES,repeat=5,delay=0.5
     BRIDGE = var=SCHEDULED_TRANSMITS,repeat=5,delay=0.5
+    BRIDGE = var=SET_NAV_SOURCE,repeat=5,delay=0.5
 }

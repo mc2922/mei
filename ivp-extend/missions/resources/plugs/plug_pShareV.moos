@@ -6,13 +6,7 @@ ProcessConfig = pShare
     output = PROTO_REPORT_LOCAL->PROTO_REPORT:$(SHOREHOST):$(SLPORT)
     output = VIEW_RANGE_PULSE->$(SHOREHOST):$(SLPORT)
     output = ACKEDCOMMS_RETURN_ACK->$(SHOREHOST):$(SLPORT)
+    output = APPCAST->APPCAST:$(SHOREHOST):$(SLPORT)
   
-    output = UCTD_SENSOR_REQUEST->$(SHOREHOST):$(SLPORT)
-    output = UCTD_PARAMETER_ESTIMATE->$(SHOREHOST):$(SLPORT)
-
-     #ifdef $(VNAME) KESTREL
-    output = UTC_TIME_OFFSET->192.168.1.104:9401
-    #endif
-
     input = route=$(VHOST):$(LPORT) 
 }

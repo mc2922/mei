@@ -15,6 +15,42 @@ initialize   GOSTAY = true               // true, false
 
 Behavior = BHV_Waypoint
 { 
+    name       = ewlawnmower
+    pwt        = 100
+    condition  = MISSION_MODE = EWLM
+    endflag    = MISSION_MODE = STATION-KEEP
+    perpetual  = true
+    updates    = EWLM_UPDATES
+
+    lead          = 15
+    lead_to_start = true
+    lead_damper   = 1
+    speed         = $(CRUISESPEED)
+    radius        = 4.0
+    slip_radius   = 10.0
+    points        = format=lawnmower, label=ew_lawnmower, x=0, y= 200, height=100, width=200, lane_width=10, rows=east-west, startx=100,starty=150
+}
+
+Behavior = BHV_Waypoint
+{ 
+    name       = nslawnmower
+    pwt        = 100
+    condition  = MISSION_MODE = NSLM
+    endflag    = MISSION_MODE = STATION-KEEP
+    perpetual  = true
+    updates    = EWLM_UPDATES
+
+    lead          = 15
+    lead_to_start = true
+    lead_damper   = 1
+    speed         = $(CRUISESPEED)
+    radius        = 4.0
+    slip_radius   = 10.0
+    points        = format=lawnmower, label=ns_lawnmower, x=0, y= 200, height=100, width=200, lane_width=10, rows=north-south, startx=-100,starty=100
+}
+
+Behavior = BHV_Waypoint
+{ 
     name       = goto_and_station
     pwt        = 100
     condition  = MISSION_MODE = GOTO
