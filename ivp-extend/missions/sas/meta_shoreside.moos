@@ -21,7 +21,7 @@ Processconfig = ANTLER
   Run = pWTStatusView        @ NewConsole = false
   Run = pResourceMon         @ NewConsole = false
   Run = uTermCommand_Hover   @ NewConsole = true
-//  Run = pAckedCommsShoreside @ NewConsole = true
+  Run = pAckedCommsShoreside @ NewConsole = true
 
 #ifdef SIMULATION
 //  Run = pAcommsSimulator     @ NewConsole = true

@@ -28,7 +28,7 @@ Behavior = BHV_Waypoint
     speed         = $(CRUISESPEED)
     radius        = 4.0
     slip_radius   = 10.0
-    points        = format=lawnmower, label=ew_lawnmower, x=0, y= 200, height=100, width=200, lane_width=10, rows=east-west, startx=100,starty=150
+    points        = format=lawnmower, label=ew_lawnmower, x=50, y= -100, height=50, width=150, lane_width=10, rows=east-west, startx=100,starty=-48, degs=-30
 }
 
 Behavior = BHV_Waypoint
@@ -46,7 +46,47 @@ Behavior = BHV_Waypoint
     speed         = $(CRUISESPEED)
     radius        = 4.0
     slip_radius   = 10.0
-    points        = format=lawnmower, label=ns_lawnmower, x=0, y= 200, height=100, width=200, lane_width=10, rows=north-south, startx=-100,starty=100
+    points        = format=lawnmower, label=ns1_lawnmower, x=50, y= -100, height=150, width=50, lane_width=10, rows=north-south, startx=-5,starty=-48, degs=155
+}
+
+Behavior = BHV_Waypoint
+{ 
+    name       = ppdrepeat
+    pwt        = 100
+    condition  = MISSION_MODE = ppdrepeat
+    endflag    = MISSION_MODE = STATION-KEEP
+    perpetual  = true
+    updates    = PPD_UPDATES
+
+    lead          = 15
+    lead_to_start = true
+    lead_damper   = 1
+    speed         = $(CRUISESPEED)
+    radius        = 4.0
+    slip_radius   = 10.0
+    repeat 	  = 5
+    order 	  = normal
+    points        = label=ppdrepeat, pts={13,-23:78,-166}
+}
+
+Behavior = BHV_Waypoint
+{ 
+    name       = prlrepeat
+    pwt        = 100
+    condition  = MISSION_MODE = prlrepeat
+    endflag    = MISSION_MODE = STATION-KEEP
+    perpetual  = true
+    updates    = PRL_UPDATES
+
+    lead          = 15
+    lead_to_start = true
+    lead_damper   = 1
+    speed         = $(CRUISESPEED)
+    radius        = 4.0
+    slip_radius   = 10.0
+    repeat 	  = 5
+    order 	  = normal
+    points        = label=prl_repeat, pts={-37,-69:90,-20}
 }
 
 Behavior = BHV_Waypoint

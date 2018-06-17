@@ -4,7 +4,7 @@
 
 
 
-ServerHost = localhost
+ServerHost = 192.168.1.100
 ServerPort = 9000
 Community  = TERRA
 
@@ -27,9 +27,8 @@ Processconfig = ANTLER
   Run = pWTStatusView        @ NewConsole = false
   Run = pResourceMon         @ NewConsole = false
   Run = uTermCommand_Hover   @ NewConsole = true
-//  Run = pAckedCommsShoreside @ NewConsole = true
+  Run = pAckedCommsShoreside @ NewConsole = true
 
-//  Run = pAcommsSimulator     @ NewConsole = true
 
   1 = -geometry,80x30+0+0,-bg,lightgreen,-fg,brown
   2 = -geometry,80x15+0+460,-bg,green,-fg,black
@@ -83,15 +82,15 @@ ProcessConfig = pShare
     IterateMode = 0    // regular iterate and mail
     AppTick     = 4    // iterate lower bound
   
-    output = ACKEDCOMMS_TRANSMIT_KESTREL->ACKEDCOMMS_TRANSMIT:localhost:9501
-    output = ACKEDCOMMS_TRANSMIT_SILVANA->ACKEDCOMMS_TRANSMIT:localhost:9401
-    output = ACKEDCOMMS_TRANSMIT_NOSTROMO->ACKEDCOMMS_TRANSMIT:localhost:9301
-    output = ACKEDCOMMS_TRANSMIT_ICARUS->ACKEDCOMMS_TRANSMIT:localhost:9201
+    output = ACKEDCOMMS_TRANSMIT_KESTREL->ACKEDCOMMS_TRANSMIT:192.168.1.105:9501
+    output = ACKEDCOMMS_TRANSMIT_SILVANA->ACKEDCOMMS_TRANSMIT:192.168.1.104:9401
+    output = ACKEDCOMMS_TRANSMIT_NOSTROMO->ACKEDCOMMS_TRANSMIT:192.168.1.103:9301
+    output = ACKEDCOMMS_TRANSMIT_ICARUS->ACKEDCOMMS_TRANSMIT:192.168.1.102:9201
 
-    output = APPCAST_REQ->APPCAST_REQ:localhost:9501
-    output = APPCAST_REQ->APPCAST_REQ:localhost:9401
-    output = APPCAST_REQ->APPCAST_REQ:localhost:9301
-    output = APPCAST_REQ->APPCAST_REQ:localhost:9201
+    output = APPCAST_REQ->APPCAST_REQ:192.168.1.105:9501
+    output = APPCAST_REQ->APPCAST_REQ:192.168.1.104:9401
+    output = APPCAST_REQ->APPCAST_REQ:192.168.1.103:9301
+    output = APPCAST_REQ->APPCAST_REQ:192.168.1.102:9201
   
     input = route=localhost:9001
 }
@@ -113,30 +112,19 @@ ProcessConfig = pLogger
 //--------------------------------------------------------
 ProcessConfig = pMarineViewer
 {
-    IterateMode = 0    // regular iterate and mail
     AppTick     = 4
 
   //TIFF_FILE     = ../../trunk/data/AerialMIT.tif
 TIFF_FILE     = ../resources/data/AerialMIT-dark.tif
   
-    center_view_true = true
-  center_view_sticky = true
-
-  HASH_VIEW     = false
   HASH_DELTA    = 100
   HASH_SHADE    = 0.45
   BACK_SHADE    = 0.70
 
           trails_viewable = true
         trails_point_size = 1
-       polygon_edge_color = white
-     polygon_vertex_color = light_green
-       polygon_edge_width = 1
   polygon_viewable_labels = false
   
-      seglist_vertex_size = 4
-        point_vertex_size = 8
-
       vehicle_shape_scale = 3
   vehicles_name_viewable = names
                      zoom = 1.7
@@ -200,5 +188,4 @@ ProcessConfig = pAckedCommsShoreside
 }
 
 
-//include ../resources/plugs/plug_pAcommsSimulator.moos
 
