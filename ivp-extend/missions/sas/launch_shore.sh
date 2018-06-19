@@ -90,6 +90,6 @@ done
 
 if [ "${ANSWER}" = "2" ]; then
     printf "Killing all processes ... \n "
-    kill %1 
+    ktm 
     printf "Done killing processes.   \n "
 fi

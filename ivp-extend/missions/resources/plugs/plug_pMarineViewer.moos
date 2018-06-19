@@ -1,25 +1,18 @@
 //--------------------------------------------------------
 ProcessConfig = pMarineViewer
 {
-    AppTick     = 4
+
+   AppTick     = 4
+   CommsTick   = 4
 
   //TIFF_FILE     = ../../trunk/data/AerialMIT.tif
-TIFF_FILE     = ../resources/data/AerialMIT-dark.tif
-  
-  HASH_DELTA    = 100
-  HASH_SHADE    = 0.45
-  BACK_SHADE    = 0.70
-
-          trails_viewable = true
-        trails_point_size = 1
-  polygon_viewable_labels = false
-  
-      vehicle_shape_scale = 3
-  vehicles_name_viewable = names
-                     zoom = 1.7
-                set_pan_x = 0
-                set_pan_y = 80
-
+  tiff_file = ../resources/data/MIT_SP.tif
+   
+    set_pan_x            = 0
+    set_pan_y            = 0
+    vehicle_shape_scale  = 3
+    zoom = 0.5
+ 
     // Appcast configuration
     appcast_height       = 75
     appcast_width        = 30
@@ -28,7 +21,6 @@ TIFF_FILE     = ../resources/data/AerialMIT-dark.tif
     nodes_font_size      = medium
     procs_font_size      = medium
     appcast_font_size    = small
-
 
     scope  = NODE_REPORT
     scope  = VIEW_POINT
