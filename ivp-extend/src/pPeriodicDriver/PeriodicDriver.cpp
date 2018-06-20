@@ -82,10 +82,10 @@ bool PeriodicDriver::Iterate()
   if(seconds<=900000){
     long sleep_duration = 900000-seconds;
     mode = "sleeping now";
-    boost::this_thread::sleep_for(boost::chrono::microseconds(sleep_duration));
+    boost::this_thread::sleep(boost::posix_time::microseconds(sleep_duration));
     m_Comms.Notify("ELLIPSE_UPDATES","speed=0.0");
     mode = "waiting now";
-    boost::this_thread::sleep_for(boost::chrono::microseconds(100000));
+    boost::this_thread::sleep(boost::posix_time::microseconds(300000));
     m_Comms.Notify("ELLIPSE_UPDATES","speed=1.0");
     mode = "driving";
   }else{
