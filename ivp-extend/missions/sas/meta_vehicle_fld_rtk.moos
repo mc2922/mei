@@ -48,6 +48,11 @@ Processconfig = ANTLER
 #endif
 }
 
+ProcessConfig = pPeriodicDriver
+{
+   AppTick   = 15
+   CommsTick = 15
+}
 
 // #include ../resources/plugs/plug_pShareV.moos
 #include plug_pShareV_SAS.moos
