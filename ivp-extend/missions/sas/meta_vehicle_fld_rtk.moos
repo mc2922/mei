@@ -39,6 +39,8 @@ Processconfig = ANTLER
   Run = pAckedCommsVehicle     @ NewConsole = false
   Run = pScheduledTransmit     @ NewConsole = false
 
+  Run = pPeriodicDriver        @ NewConsole = false
+
 #ifdef tritech
   Run = iAltimeter             @ NewConsole = false
 #elseifdef cruzpro
@@ -48,7 +50,7 @@ Processconfig = ANTLER
 
 
 // #include ../resources/plugs/plug_pShareV.moos
-#include ../resources/plugs/plug_pShareV_SAS.moos
+#include plug_pShareV_SAS.moos
 
 #include ../resources/plugs/plug_iKST.moos
 #include ../resources/plugs/plug_pLogger.moos
