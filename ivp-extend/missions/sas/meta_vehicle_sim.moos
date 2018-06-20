@@ -15,8 +15,6 @@ ServerHost = $(VHOST)
 ServerPort = $(VPORT)
 Community  = $(VNAME)
 
-MOOSTimeWarp = 10
-
 #include ../resources/plugs/plug_origin_warp.moos
   
 //------------------------------------------------------------
@@ -36,6 +34,13 @@ Processconfig = ANTLER
   Run = pResourceMon           @ NewConsole = false
   Run = pAckedCommsVehicle     @ NewConsole = false
   Run = pScheduledTransmit     @ NewConsole = false
+  Run = pPeriodicDriver        @ NewConsole = false
+}
+
+ProcessConfig = pPeriodicDriver
+{
+   AppTick   = 15
+   CommsTick = 15
 }
 
 #include ../resources/plugs/plug_iKST.moos

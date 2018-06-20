@@ -16,5 +16,8 @@ TARGET_LINK_LIBRARIES(pPeriodicDriver
    apputil
    mbutil
    m
-   pthread)
+   pthread
+   boost_system
+   boost_filesystem
+   boost_thread)
 

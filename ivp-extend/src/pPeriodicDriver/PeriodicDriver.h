@@ -31,6 +31,8 @@ class PeriodicDriver : public AppCastingMOOSApp
  private: // Configuration variables
 
  private: // State variables
+  std::string mode;
+  long seconds;
 };
 
-#endif 
+#endif

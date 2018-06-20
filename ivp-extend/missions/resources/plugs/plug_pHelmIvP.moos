@@ -1,6 +1,6 @@
 ProcessConfig = pHelmIvP
 {
-    AppTick     = 2
+    AppTick     = 10
 
     ok_skew = any
   

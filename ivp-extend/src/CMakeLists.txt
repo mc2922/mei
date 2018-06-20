@@ -27,12 +27,14 @@ ADD_SUBDIRECTORY(pGenPath)
 #ADD_SUBDIRECTORY(uFldHazardMgrX)
 #ADD_SUBDIRECTORY(pFrontEstimate)
 #ADD_SUBDIRECTORY(lib_henrik_util)
+ ADD_SUBDIRECTORY(pPeriodicDriver) 
 
 ADD_SUBDIRECTORY(lab_05)
 #ADD_SUBDIRECTORY(lab_12)
 
 #IF(BUILD_SHORE_APPS)
     # optionally build shoreside only apps here
+
 #    ADD_SUBDIRECTORY(simple_acomms_parser)
 #ENDIF(BUILD_SHORE_APPS)
 

@@ -17,7 +17,7 @@ Behavior = BHV_Waypoint
 { 
     name       = sas_ellipse
     pwt        = 100
-    condition  = MISSION_MODE = ELLIPSe
+    condition  = MISSION_MODE = ELLIPSE
     endflag    = MISSION_MODE = STATION-KEEP
     perpetual  = true
     updates    = ELLIPSE_UPDATES

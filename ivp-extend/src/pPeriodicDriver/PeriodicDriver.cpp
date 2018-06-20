@@ -1,14 +1,16 @@
 /************************************************************/
-/*    NAME:                                               */
+/*    NAME: Mei                                               */
 /*    ORGN: MIT                                             */
 /*    FILE: PeriodicDriver.cpp                                        */
-/*    DATE:                                                 */
+/*    DATE: 06/19/2018                                                */
 /************************************************************/
 
 #include <iterator>
 #include "MBUtils.h"
 #include "ACTable.h"
 #include "PeriodicDriver.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
 
 using namespace std;
 
@@ -17,6 +19,7 @@ using namespace std;
 
 PeriodicDriver::PeriodicDriver()
 {
+  seconds = 0;
 }
 
 //---------------------------------------------------------
@@ -74,7 +77,20 @@ bool PeriodicDriver::OnConnectToServer()
 bool PeriodicDriver::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  // Do your thing here!
+  boost::posix_time::ptime timer(boost::posix_time::microsec_clock::local_time());
+  seconds = timer.time_of_day().fractional_seconds();
+  if(seconds<=900000){
+    long sleep_duration = 900000-seconds;
+    mode = "sleeping now";
+    boost::this_thread::sleep_for(boost::chrono::microseconds(sleep_duration));
+    m_Comms.Notify("ELLIPSE_UPDATES","speed=0.0");
+    mode = "waiting now";
+    boost::this_thread::sleep_for(boost::chrono::microseconds(100000));
+    m_Comms.Notify("ELLIPSE_UPDATES","speed=1.0");
+    mode = "driving";
+  }else{
+    mode = "something went wrong";
+  }
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -135,10 +151,10 @@ bool PeriodicDriver::buildReport()
   m_msgs << "File:                                        \n";
   m_msgs << "============================================ \n";
 
-  ACTable actab(4);
-  actab << "Alpha | Bravo | Charlie | Delta";
+  ACTable actab(2);
+  actab << "Seconds |  Mode ";
   actab.addHeaderLines();
-  actab << "one" << "two" << "three" << "four";
+  actab << (int)seconds << mode;
   m_msgs << actab.getFormattedString();
 
   return(true);

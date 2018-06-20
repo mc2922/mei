@@ -101,6 +101,8 @@ INCLUDE_DIRECTORIES(    ${MOOS_INCLUDE_DIRS}
                         ${IVP_INCLUDE_DIRS}
                         ${HOVERGROUP_INCLUDE_DIRECTORIES}    )
 
+FIND_PACKAGE(Boost 1.5 REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 #=============================================================================
 # Set the output directories for the binary and library files
