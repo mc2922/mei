@@ -61,7 +61,7 @@ SET(BUILD_SHORE_APPS TRUE CACHE BOOL "Build shore apps")
 # Search for the moos-ivp folder
 find_path( MOOSIVP_SOURCE_TREE_BASE
              NAMES ivp
-             PATHS "../moos-ivp" "../../moos-ivp" "../../../../moos-ivp/trunk/" "../moos-ivp/trunk/" "~/moos-ivp"
+             PATHS "../moos-ivp" "../../moos-ivp" "../../../../moos-ivp/trunk/" "../moos-ivp/trunk/" "~/moos-ivp" "~/hoverland/moos-ivp"
              DOC "Base directory of the MOOS-IvP source tree"
              NO_DEFAULT_PATH
 )
