@@ -1,13 +1,13 @@
 /****************************************************************/
 /*   NAME:                                              */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: PeriodicDriver_Info.cpp                               */
+/*   FILE: AcousticSource_Info.cpp                               */
 /*   DATE: Dec 29th 1963                                        */
 /****************************************************************/
 
 #include <cstdlib>
 #include <iostream>
-#include "PeriodicDriver_Info.h"
+#include "AcousticSource_Info.h"
 #include "ColorParse.h"
 #include "ReleaseInfo.h"
 
@@ -20,7 +20,7 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("  The pPeriodicDriver application is used for               ");
+  blk("  The pAcousticSource application is used for               ");
   blk("                                                                ");
   blk("                                                                ");
   blk("                                                                ");
@@ -34,15 +34,15 @@ void showHelpAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("Usage: pPeriodicDriver file.moos [OPTIONS]                   ");
+  blu("Usage: pAcousticSource file.moos [OPTIONS]                   ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
   blk("                                                                ");
   blk("Options:                                                        ");
   mag("  --alias","=<ProcessName>                                      ");
-  blk("      Launch pPeriodicDriver with the given process name         ");
-  blk("      rather than pPeriodicDriver.                           ");
+  blk("      Launch pAcousticSource with the given process name         ");
+  blk("      rather than pAcousticSource.                           ");
   mag("  --example, -e                                                 ");
   blk("      Display example MOOS configuration block.                 ");
   mag("  --help, -h                                                    ");
@@ -50,7 +50,7 @@ void showHelpAndExit()
   mag("  --interface, -i                                               ");
   blk("      Display MOOS publications and subscriptions.              ");
   mag("  --version,-v                                                  ");
-  blk("      Display the release version of pPeriodicDriver.        ");
+  blk("      Display the release version of pAcousticSource.        ");
   blk("                                                                ");
   blk("Note: If argv[2] does not otherwise match a known option,       ");
   blk("      then it will be interpreted as a run alias. This is       ");
@@ -66,10 +66,10 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pPeriodicDriver Example MOOS Configuration                   ");
+  blu("pAcousticSource Example MOOS Configuration                   ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = pPeriodicDriver                              ");
+  blk("ProcessConfig = pAcousticSource                              ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
@@ -87,7 +87,7 @@ void showInterfaceAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pPeriodicDriver INTERFACE                                    ");
+  blu("pAcousticSource INTERFACE                                    ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
@@ -109,7 +109,7 @@ void showInterfaceAndExit()
 
 void showReleaseInfoAndExit()
 {
-  showReleaseInfo("pPeriodicDriver", "gpl");
+  showReleaseInfo("pAcousticSource", "gpl");
   exit(0);
 }
 

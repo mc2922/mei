@@ -1,12 +1,12 @@
 /****************************************************************/
 /*   NAME:                                              */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: PeriodicDriver_Info.h                                      */
+/*   FILE: PeriodicDrive_Info.h                                      */
 /*   DATE: Dec 29th 1963                                        */
 /****************************************************************/
 
-#ifndef PeriodicDriver_INFO_HEADER
-#define PeriodicDriver_INFO_HEADER
+#ifndef PeriodicDrive_INFO_HEADER
+#define PeriodicDrive_INFO_HEADER
 
 void showSynopsis();
 void showHelpAndExit();

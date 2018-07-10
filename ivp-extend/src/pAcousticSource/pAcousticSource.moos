@@ -1,7 +1,7 @@
 //------------------------------------------------
-// pPeriodicDriver config block
+// pAcousticSource config block
 
-ProcessConfig = pPeriodicDriver
+ProcessConfig = pAcousticSource
 {
    AppTick   = 4
    CommsTick = 4

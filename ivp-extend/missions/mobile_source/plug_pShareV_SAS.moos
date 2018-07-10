@@ -1,0 +1,19 @@
+ProcessConfig = pShare
+{
+    IterateMode = 0    // regular iterate and mail
+    AppTick     = 4
+  
+    output = PROTO_REPORT_LOCAL->PROTO_REPORT:$(SHOREHOST):$(SLPORT)
+    output = VIEW_RANGE_PULSE->$(SHOREHOST):$(SLPORT)
+    output = ACKEDCOMMS_RETURN_ACK->$(SHOREHOST):$(SLPORT)
+    output = APPCAST->APPCAST:$(SHOREHOST):$(SLPORT)
+  
+    output = DAQ_BINARY_DATA->DAQ_BINARY_DATA:$(SHOREHOST):$(SLPORT)
+    output = DAQ_NUM_CHANNELS->DAQ_NUM_CHANNELS:$(SHOREHOST):$(SLPORT)
+    output = DAQ_NUM_SAMPLES->DAQ_NUM_SAMPLES:$(SHOREHOST):$(SLPORT)
+    output = DAQ_ORDERING->DAQ_ORDERING:$(SHOREHOST):$(SLPORT)
+    output = DAQ_PUBLISH_TIME->DAQ_PUBLISH_TIME:$(SHOREHOST):$(SLPORT)
+    output = DAQ_TRIGGER_TIME->DAQ_TRIGGER_TIME:$(SHOREHOST):$(SLPORT)
+
+    input = route=$(VHOST):$(LPORT) 
+}

@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pPeriodicDrive config block
+
+ProcessConfig = pPeriodicDrive
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

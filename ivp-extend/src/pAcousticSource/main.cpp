@@ -2,14 +2,14 @@
 /*    NAME:                                               */
 /*    ORGN: MIT                                             */
 /*    FILE: main.cpp                                        */
-/*    DATE: December 29th, 1963                             */
+/*    DATE:                                                 */
 /************************************************************/
 
 #include <string>
 #include "MBUtils.h"
 #include "ColorParse.h"
-#include "PeriodicDriver.h"
-#include "PeriodicDriver_Info.h"
+#include "AcousticSource.h"
+#include "AcousticSource_Info.h"
 
 using namespace std;
 
@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
     showHelpAndExit();
 
   cout << termColor("green");
-  cout << "pPeriodicDriver launching as " << run_command << endl;
+  cout << "pAcousticSource launching as " << run_command << endl;
   cout << termColor() << endl;
 
-  PeriodicDriver PeriodicDriver;
+  AcousticSource AcousticSource;
 
-  PeriodicDriver.Run(run_command.c_str(), mission_file.c_str());
+  AcousticSource.Run(run_command.c_str(), mission_file.c_str());
   
   return(0);
 }
