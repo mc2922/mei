@@ -29,10 +29,15 @@ class AcousticSource : public CMOOSApp
    void RegisterVariables();
 
  private: // Configuration variables
- bool mission_started;
+
  private: // State variables
  double source_x, source_y;
- string status_msg;
+ double offset_x, offset_y;
+ double nav_x, nav_y;
+ double goto_x, goto_y;
+ double goto_x_hist,goto_y_hist;
+ double bearing, radius;
+ string mission, status_msg;
 };
 
 #endif

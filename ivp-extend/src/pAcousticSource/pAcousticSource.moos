@@ -3,7 +3,15 @@
 
 ProcessConfig = pAcousticSource
 {
-   AppTick   = 4
-   CommsTick = 4
-}
+   AppTick   = 1
+   CommsTick = 1
 
+   //Expected MISSION_MODE: AS_OFFSET and AS_CIRCLE
+
+   offset_x = 50
+   offset_y = -50
+
+   //Expected CIRCLE_BEARING CIRCLE_RADIUS
+   bearing = 90   //Relative to Eastings
+   radius = 75
+}
