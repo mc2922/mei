@@ -39,19 +39,11 @@ Processconfig = ANTLER
   Run = pAckedCommsVehicle     @ NewConsole = false
   Run = pScheduledTransmit     @ NewConsole = false
 
-  Run = pPeriodicDriver        @ NewConsole = false
-
 #ifdef tritech
   Run = iAltimeter             @ NewConsole = false
 #elseifdef cruzpro
   Run = iAltimeter_cruzPro     @ NewConsole = false
 #endif
-}
-
-ProcessConfig = pPeriodicDriver
-{
-   AppTick   = 15
-   CommsTick = 15
 }
 
 // #include ../resources/plugs/plug_pShareV.moos

@@ -7,7 +7,7 @@ Community  = $(SNAME)
 #define VNAME $(SNAME)
 
 #include ../resources/plugs/plug_origin_warp.moos
-  
+
 //--------------------------------------------------------
 Processconfig = ANTLER
 {
@@ -31,7 +31,33 @@ Processconfig = ANTLER
   2 = -geometry,80x15+0+460,-bg,green,-fg,black
 }
 
-#include ../resources/plugs/plug_uTermCommand_Hover.moos
+ProcessConfig = uTermCommand_Hover
+{
+    AppTick = 2
+    CommsTick = 2
+
+    CMD = ASO --> MISSION_MODE_NOSTROMO --> AS_OFFSET
+    CMD = ASO --> MOOS_MANUAL_OVERRIDE_NOSTROMO --> false
+
+    CMD = ASC --> MISSION_MODE_NOSTROMO --> AS_CIRCLE
+    CMD = ASC --> MOOS_MANUAL_OVERRIDE_NOSTROMO --> false
+
+    // nostromo goto
+    CMD = NG --> MISSION_MODE_NOSTROMO --> GOTO
+    CMD = NG --> MOOS_MANUAL_OVERRIDE_NOSTROMO --> false
+    // nostromo station
+    CMD = NS --> MISSION_MODE_NOSTROMO --> STATION-KEEP
+    CMD = NS --> MOOS_MANUAL_OVERRIDE_NOSTROMO --> false
+    // nostromo all-stop
+    CMD = NA --> MISSION_MODE_NOSTROMO --> INACTIVE
+    CMD = NA --> MOOS_MANUAL_OVERRIDE_NOSTROMO --> true
+
+    // scheduled transmits
+    CMD = ENABLE_TRANSMITS --> SCHEDULED_TRANSMITS_ALL --> on
+    CMD = DISABLE_TRANSMITS --> SCHEDULED_TRANSMITS_ALL --> off
+}
+
+//#include ../resources/plugs/plug_uTermCommand_Hover.moos
 #include ../resources/plugs/plug_pShareS.moos
 #include ../resources/plugs/plug_pLogger.moos
 #include ../resources/plugs/plug_pMarineViewer.moos
