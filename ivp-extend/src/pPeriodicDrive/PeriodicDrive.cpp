@@ -37,7 +37,7 @@ bool PeriodicDrive::OnNewMail(MOOSMSG_LIST &NewMail)
     CMOOSMsg &msg = *p;
 
    string key = msg.GetKey();
-   if(key = "PERIODIC_DRIVE"){
+   if(key == "PERIODIC_DRIVE"){
      if(msg.GetString()=="TRUE"){
        mission_start = true;
      }
@@ -46,7 +46,7 @@ bool PeriodicDrive::OnNewMail(MOOSMSG_LIST &NewMail)
      }
    }
 
-   if(key = "PERIODIC_DRIVE_SPEED"){
+   if(key == "PERIODIC_DRIVE_SPEED"){
      drive_speed = msg.GetDouble();
    }
 #if 0 // Keep these around just for template
@@ -87,7 +87,7 @@ bool PeriodicDrive::OnConnectToServer()
 bool PeriodicDrive::Iterate()
 {
   if(mission_start){
-    
+
   }
 
   return(true);

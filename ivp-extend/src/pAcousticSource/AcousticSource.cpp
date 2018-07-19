@@ -142,8 +142,8 @@ bool AcousticSource::Iterate()
   }
 
   if(mission=="AS_CIRCLE"){
-    goto_x = source_x + radius*(cos(bearing/180*pi));
-    goto_y = source_y + radius*(sin(bearing/180*pi));
+    goto_x = source_x + radius*(cos(bearing/180*M_PI));
+    goto_y = source_y + radius*(sin(bearing/180*M_PI));
     bearing += 1;
 
     if(goto_x != goto_x_hist || goto_y != goto_y_hist){
