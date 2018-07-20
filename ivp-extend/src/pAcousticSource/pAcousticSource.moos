@@ -1,9 +1,6 @@
 
-#include ../../missions/resources/config/nostromo.def
-#include ../../missionsresources/config/nostromo_options.def
-
-ServerHost = $(VHOST)
-ServerPort = $(VPORT)
+ServerHost = 192.168.1.103
+ServerPort = 9300
 
 //------------------------------------------------
 // pAcousticSource config block
