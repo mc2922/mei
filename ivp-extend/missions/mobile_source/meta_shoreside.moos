@@ -59,6 +59,7 @@ ProcessConfig = uTermCommand_Hover
 
 //#include ../resources/plugs/plug_uTermCommand_Hover.moos
 #include ../resources/plugs/plug_pShareS.moos
+//#include plug_pShareS_AS.moos
 #include ../resources/plugs/plug_pLogger.moos
 #include ../resources/plugs/plug_pMarineViewer.moos
 #include ../resources/plugs/plug_pResourceMon.moos
